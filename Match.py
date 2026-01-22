@@ -1,6 +1,4 @@
 from config import *
-from MatchFinder import is_driver_frame, is_auton_frame
-
 
 class Match:
     def __init__(self, m_finder):
@@ -22,7 +20,7 @@ class Match:
     def find_times(self, frame):
         self.find_driver_stop(frame)
         self.find_driver_start()
-        auton_exists = DIVISION_TYPES[self.division_type]["AUTON_DURATION"] > 0
+        auton_exists = CONFIG.division_types[self.division_type]["AUTON_DURATION"] > 0
         if auton_exists:
             self.find_auton_stop()
             self.find_auton_start()
@@ -35,16 +33,16 @@ class Match:
         # Assume the smallest driver time first. Go to where 2 seconds in should be.
         # See if the timer reflects our assumption. Try the next driver time.
         # Note that DIVISION_TYPES is sorted by ascending DRIVER_DURATION
-        for div_name, div_values in DIVISION_TYPES.items():
+        for div_name, div_values in CONFIG.division_types.items():
             backtrack_distance = div_values["DRIVER_DURATION"] - 2
             check_time = self.driver_stop_time - backtrack_distance
             frame = self.m_finder.get_frame(self.m_finder.time_to_frame_num(check_time))
             timer_correct = backtrack_distance - 1 <= frame.timer_seconds <= backtrack_distance
-            if is_driver_frame(frame) and timer_correct:
+            if self.m_finder.is_driver_frame(frame) and timer_correct:
                 self.division_type = div_name
             else:
                 break
-        self.driver_start_time = self.driver_stop_time - DIVISION_TYPES[self.division_type]["DRIVER_DURATION"]
+        self.driver_start_time = self.driver_stop_time - CONFIG.division_types[self.division_type]["DRIVER_DURATION"]
         self.driver_start_frame = self.m_finder.time_to_frame_num(self.driver_start_time)
 
     def find_auton_stop(self):
@@ -53,8 +51,8 @@ class Match:
         frame = self.m_finder.linear_search(
             start,
             self.driver_start_time,
-            accept=is_auton_frame,
-            reject=is_driver_frame,
+            accept=self.m_finder.is_auton_frame,
+            reject=self.m_finder.is_driver_frame,
             forwards=False,
             ocr=False
         )
@@ -62,7 +60,7 @@ class Match:
         self.auton_stop_time = self.m_finder.frame_num_to_time(self.auton_stop_frame)
 
     def find_auton_start(self):
-        self.auton_start_time = self.auton_stop_time - DIVISION_TYPES[self.division_type]["AUTON_DURATION"]
+        self.auton_start_time = self.auton_stop_time - CONFIG.division_types[self.division_type]["AUTON_DURATION"]
 
     def has_driver(self):
         return any([bool(i) for i in [
