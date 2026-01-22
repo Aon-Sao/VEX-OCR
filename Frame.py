@@ -10,7 +10,8 @@ class Frame:
         self.match_mode = None
         self.division_name = None
         if ocr:
-            self.ocr()
+            self.timer_seconds, self.match_num, self.match_mode, self.division_name = OCR.analyze_frame(self.cv2_frame)
+            self.timer_string = f"{self.timer_seconds // 60}:{self.timer_seconds % 60}"
 
     def __str__(self):
         return "Frame Object\n" + \
@@ -20,7 +21,3 @@ class Frame:
                 f"Match Num: {self.match_num}\n" + \
                 f"Match Mode: {self.match_mode}\n" + \
                 f"Div Name: {self.division_name}\n"
-
-    def ocr(self):
-        self.timer_seconds, self.match_num, self.match_mode, self.division_name = OCR.analyze_frame(self.cv2_frame)
-        self.timer_string = f"{self.timer_seconds // 60}:{self.timer_seconds % 60}"

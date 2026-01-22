@@ -1,10 +1,12 @@
 from config import *
+from utils import time_to_frame_num, frame_num_to_time
+
 
 class Match:
-    def __init__(self, m_finder):
+    def __init__(self, m_finder, initial_frame):
         self.m_finder = m_finder
-        self.match_num = "some_match_num"
-        self.division_name = "some_division_name"
+        self.match_num = initial_frame.match_num
+        self.division_name = initial_frame.division_name
         self.division_type = "some_division_type"
 
         # We'll see which ones we use
@@ -16,6 +18,8 @@ class Match:
         self.driver_start_time = None
         self.driver_stop_frame = None
         self.driver_stop_time = None
+
+        self.find_times(initial_frame)
 
     def __str__(self):
         return f"Match Object\n" + \
@@ -36,8 +40,8 @@ class Match:
             self.find_auton_start()
 
     def find_driver_stop(self, frame):
-        self.driver_stop_time = self.m_finder.frame_num_to_time(frame.frame_num) + frame.timer_seconds
-        self.driver_stop_frame = self.m_finder.time_to_frame_num(self.driver_stop_time)
+        self.driver_stop_time = frame_num_to_time(self.m_finder.fps, frame.frame_num) + frame.timer_seconds
+        self.driver_stop_frame = time_to_frame_num(self.m_finder.fps, self.driver_stop_time)
 
     def find_driver_start(self):
         # Assume the smallest driver time first. Go to where 2 seconds in should be.
@@ -46,18 +50,19 @@ class Match:
         for div_name, div_values in CONFIG.division_types.items():
             backtrack_distance = div_values["DRIVER_DURATION"] - 2
             check_time = self.driver_stop_time - backtrack_distance
-            frame = self.m_finder.get_frame(self.m_finder.time_to_frame_num(check_time))
+            frame = self.m_finder.get_frame(time_to_frame_num(self.m_finder.fps, check_time))
             timer_correct = backtrack_distance - 1 <= frame.timer_seconds <= backtrack_distance
             if self.m_finder.is_driver_frame(frame) and timer_correct:
                 self.division_type = div_name
             else:
                 break
         self.driver_start_time = self.driver_stop_time - CONFIG.division_types[self.division_type]["DRIVER_DURATION"]
-        self.driver_start_frame = self.m_finder.time_to_frame_num(self.driver_start_time)
+        self.driver_start_frame = time_to_frame_num(self.m_finder.fps, self.driver_start_time)
 
     def find_auton_stop(self):
         max_search_time = 5 * 60
         start = self.driver_start_time - max_search_time
+        # TODO: Replace with skip_search
         frame = self.m_finder.linear_search(
             start,
             self.driver_start_time,
@@ -67,7 +72,7 @@ class Match:
             ocr=False
         )
         self.auton_stop_frame = frame.frame_num
-        self.auton_stop_time = self.m_finder.frame_num_to_time(self.auton_stop_frame)
+        self.auton_stop_time = frame_num_to_time(self.m_finder.fps, self.auton_stop_frame)
 
     def find_auton_start(self):
         self.auton_start_time = self.auton_stop_time - CONFIG.division_types[self.division_type]["AUTON_DURATION"]
