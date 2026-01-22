@@ -12,11 +12,15 @@ class MatchFinder:
 
     def is_driver_frame(self, frame):
         # Match mode says driver && timer is non-zero
+        if not isinstance(frame.match_mode, str):
+            return False
         return "driver".lower() in frame.match_mode.lower() \
             and frame.timer_seconds > 0
 
     def is_auton_frame(self, frame):
         # Match mode says auton && timer is non-zero
+        if not isinstance(frame.match_mode, str):
+            return False
         return "auton".lower() in frame.match_mode.lower() \
             and frame.timer_seconds > 0
 
