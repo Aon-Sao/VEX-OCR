@@ -17,6 +17,16 @@ class Match:
         self.driver_stop_frame = None
         self.driver_stop_time = None
 
+    def __str__(self):
+        return f"Match Object\n" + \
+                f"Match Num: {self.match_num}\n" + \
+                f"Division Name: {self.division_name}\n" + \
+                f"Division Type: {self.division_type}\n" + \
+                f"Auton times: {self.auton_start_time}s -- {self.auton_stop_time}s\n" + \
+                f"Auton frames: {self.auton_start_frame}s -- {self.auton_stop_frame}s\n" + \
+                f"Driver times: {self.driver_start_time}s -- {self.driver_stop_time}s\n" + \
+                f"Driver frames: {self.driver_start_frame}s -- {self.driver_stop_frame}s\n"
+
     def find_times(self, frame):
         self.find_driver_stop(frame)
         self.find_driver_start()
