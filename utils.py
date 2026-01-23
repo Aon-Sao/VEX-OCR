@@ -2,8 +2,9 @@ import cv2
 from Frame import Frame
 from config import CONFIG
 
+
 def get_frame(video_pos, ocr = True):
-    print(f"DEBUG: getting frame {video_pos.frame()}, OCR: {ocr}")
+    # print(f"DEBUG: getting frame {video_pos.frame()}, OCR: {ocr}")
     CONFIG.video_obj.set(cv2.CAP_PROP_POS_FRAMES, video_pos.frame())
     _, frame = CONFIG.video_obj.read()
     return Frame(video_pos, frame, ocr=ocr)
@@ -30,13 +31,14 @@ def skip_search(frame_generator, accept=None, reject=None, ocr=True):
     msg = do(pos)
     while True:
         try:
-            pos = frame_generator.send(msg)
-            furthest_pos = max(furthest_pos, pos)
-            msg = do(pos)
             if msg[0] == "ACCEPT":
                 return msg[1], furthest_pos
             if msg[0] == "REJECT":
                 break
+            if msg[0] == "CONTINUE":
+                pos = frame_generator.send(msg)
+                furthest_pos = max(furthest_pos, pos)
+                msg = do(pos)
         except StopIteration:
             return None, furthest_pos
     return None, furthest_pos

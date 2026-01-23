@@ -32,6 +32,7 @@ class VideoPosition:
         return self._frame if self._frame is not None else round(self._time * CONFIG.fps)
 
     # Well...it works
+    @staticmethod
     def do_if_compatible(func):
         @functools.wraps(func)
         def wrapper(self, other):
@@ -52,6 +53,10 @@ class VideoPosition:
     @do_if_compatible
     def __lt__(self, other):
         return self.time() < other.time()
+
+    @do_if_compatible
+    def __le__(self, other):
+        return self.time() <= other.time()
 
     @do_if_compatible
     def __eq__(self, other):

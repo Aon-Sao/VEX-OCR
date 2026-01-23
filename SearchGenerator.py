@@ -1,4 +1,6 @@
 from VideoPosition import VideoPosition as vp
+from config import CONFIG
+
 
 class SearchGenerator:
 
@@ -12,6 +14,8 @@ class SearchGenerator:
         while msg[0] == "CONTINUE":
             msg = yield self.pos
             func(*msg)
+            if not (vp(frame=0) <= self.pos <= vp(frame=CONFIG.frame_count)):
+                break
 
     # Skipping by a "reasonable number of frames"
     # Pass negative values to go in reverse

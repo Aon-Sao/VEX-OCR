@@ -21,8 +21,8 @@ class Match:
             f"\tMatch Num: {self.match_num}\n" + \
             f"\tDivision Name: {self.division_name}\n" + \
             f"\tDivision Type: {self.division_type}\n" + \
-            f"\tAuton: {self.auton_region}\n" + \
-            f"\tDriver: {self.driver_region}\n"
+            f"\tAuton: {self.auton_region.replace("\n", "\n\t")}\n" + \
+            f"\tDriver: {self.driver_region.replace("\n", "\n\t")}"
 
     def find_times(self, frame):
         self.find_driver_region(frame)

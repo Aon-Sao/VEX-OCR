@@ -1,9 +1,10 @@
 import os
+from subprocess import run
+
 import cv2
 from collections import OrderedDict
 
 from FileBrowser import FileBrowser
-
 
 class Config:
     # Singleton
@@ -56,7 +57,6 @@ class Config:
         "VURC"
     ]
     tesseract_path = "/usr/sbin/tesseract"
-    video_path = None
     expected_strings = [
         "HS",
         "MS",
@@ -87,6 +87,9 @@ class Config:
     event_skus = []
 
     def __init__(self):
+        # Do not set these values by hand
+        self.video_path = None
+        self.frame_count = None
         self.fps = None
         self.video_obj = None
         self.expected_strings.extend(self.division_names)
@@ -119,10 +122,21 @@ class Config:
     def set_video_path(self, vid_path):
         self.video_path = vid_path
         self.video_obj = cv2.VideoCapture(self.video_path)
-        self.fps = self.video_obj.get(cv2.CAP_PROP_FPS)
+        self.set_fps_and_total_frames()
 
     def select_video_path(self):
         self.set_video_path(FileBrowser("Select video file", os.getcwd()).browse())
+
+    def set_fps_and_total_frames(self):
+        proc = run(["ffprobe", "-v", "error", "-select_streams", "v:0", "-count_packets", "-of",
+                    "default=noprint_wrappers=1:nokey=1",
+                    "-show_entries", "stream=avg_frame_rate,nb_read_packets", self.video_path],
+                   capture_output=True)
+        output = proc.stdout.decode()
+        fps_str, total_frames = output.split("\n", maxsplit=1)
+        n, d = fps_str.split(r"/")
+        self.fps = float(n) / float(d)
+        self.frame_count = int(total_frames)
 
 
 CONFIG = Config()
