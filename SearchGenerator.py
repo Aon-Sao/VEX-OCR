@@ -1,26 +1,22 @@
+from VideoPosition import VideoPosition as vp
+
 class SearchGenerator:
-    class FramePos(int):
-        pass
-    class FrameDelta(int):
-        pass
-    class TimePos(float):
-        pass
-    class TimeDelta(float):
-        pass
 
-    def __init__(self, fps, start, stop=None):
-        self.fps = fps
-        self.start = start
-        self.stop = stop
+    def __init__(self, start, stop=None):
+        self.start = vp(time=start)
+        self.stop = vp(time=stop) if stop is not None else None
+        self.pos = self.start
 
-    def advance(self, pos, delta):
-        if isinstance(pos, self.FramePos) and isinstance(delta, self.FrameDelta):
-            return self.FramePos(pos + delta)
-        elif isinstance(pos, self.TimePos) and isinstance(delta, self.TimeDelta):
-            return self.TimePos(pos + delta)
-        else:
-            raise TypeError(f"Incompatible types {type(pos)} and {type(delta)}")
+    def communicator(self, func):
+        msg = ("CONTINUE",)
+        while msg[0] == "CONTINUE":
+            msg = yield self.pos
+            func(*msg)
 
-        # For when there is no information. Skipping by a "reasonable number of frames"
-    def fps_based_skip(self):
-        pass
+    # Skipping by a "reasonable number of frames"
+    # Pass negative values to go in reverse
+    def seconds_based_skip(self, skip_size):
+        def skipper(msg, frame):
+            self.pos += skip_size
+        return self.communicator(skipper)
+

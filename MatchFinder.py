@@ -1,34 +1,42 @@
-from utils import *
+import utils
+from config import CONFIG
 import cv2
 from Match import Match
+from SearchGenerator import SearchGenerator
+from VideoPosition import VideoPosition as vp
 
 
 class MatchFinder:
-    def __init__(self, video):
-        self.video = cv2.VideoCapture(video)
-        self.total_frames = self.video.get(cv2.CAP_PROP_FRAME_COUNT)
-        self.fps = self.video.get(cv2.CAP_PROP_FPS)
-        self.duration_seconds = self.total_frames / self.fps
+    # Singleton
+    instance = None
+    def __new__(cls):
+        if cls.instance is None:
+            cls.instance = super().__new__(cls)
+        return cls.instance
 
-    def find_first_match(self):
-        # TODO: Put the generator in
-        frame = self.skip_search()
-        return Match(self, frame)  # hmmm
+    furthest_pos = vp(time=0)
 
-    def find_next_match(self, previous_match):
-        pass
+    # TODO: picking up from end of match should be a last resort
+    def find_all_matches(self):
+        video_end = vp(frame=int(CONFIG.video_obj.get(cv2.CAP_PROP_FRAME_COUNT)))
+        # Wrap with list() to allow subscription
+        shortest_division = list(CONFIG.division_types.items())[0][1]
+        shortest_driver = vp(time=shortest_division["DRIVER_DURATION"])
+        shortest_possible_match = vp(time=shortest_driver.time() + shortest_division["AUTON_DURATION"])
 
-    def skip_search(self, frame_generator, accept=None, reject=None, ocr=True):
-        # By default, we are looking for driver frames
-        if accept is None:
-            accept = is_driver_frame
-        # If there is no reject condition, don't halt early
-        if reject is None:
-            reject = lambda x: False
-        for n in frame_generator:
-            frame = get_frame(self.video, n, ocr=ocr)
-            if accept(frame):
-                return frame
-            elif reject(frame):
-                break
-        return None
+        start = vp(frame=0)
+        end = video_end
+        skip_size = shortest_driver / 2
+
+        matches = []
+        while self.furthest_pos < (video_end - shortest_possible_match):
+            print(f"DEBUG: searching for match between {start} and {end}")
+            gen = SearchGenerator(start, end).seconds_based_skip(skip_size)
+            if match := self.find_next_match(gen) is not None:
+                matches.append(match)
+                previous_match = matches[-1]
+                start = previous_match.driver_region.end()
+
+    def find_next_match(self, frame_generator):
+        frame, self.furthest_pos = utils.skip_search(frame_generator)
+        return Match(frame) if frame else None

@@ -1,9 +1,8 @@
 import os
-from collections import OrderedDict
 import cv2
+from collections import OrderedDict
 
 from FileBrowser import FileBrowser
-from utils import select_region
 
 
 class Config:
@@ -53,6 +52,8 @@ class Config:
     }
     division_types_present = [
         "VIQRC",
+        "V5RC",
+        "VURC"
     ]
     tesseract_path = "/usr/sbin/tesseract"
     video_path = None
@@ -76,10 +77,9 @@ class Config:
         "Skills",
         "Timeout",
         "Top",
-        "Driver", "Driver Control"
-        "Auton",
-        "Autonomous",
-        "Control"
+        "Driver", "Driver Control",
+        "Auton", "Autonomous",
+        "Control",
     ]
     stream_id = -1
     division_id = -1
@@ -87,28 +87,42 @@ class Config:
     event_skus = []
 
     def __init__(self):
+        self.fps = None
+        self.video_obj = None
         self.expected_strings.extend(self.division_names)
         self.expected_strings.extend(self.division_types_present)
         self.expected_strings = [i.lower() for i in self.expected_strings]
 
-    def select_ocr_regions(self, frame_num, division_type="DEFAULT"):
+    def select_ocr_regions(self, time, division_type="DEFAULT"):
         for region in self.ocr_regions[division_type].keys():
-            self.select_ocr_region(frame_num, division_type, region)
+            self.select_ocr_region(time, division_type, region)
 
-    def select_ocr_region(self, frame_num, division_type, field_type):
+    def select_ocr_region(self, time, division_type, field_type):
         assert division_type in self.ocr_regions.keys()
         vid = cv2.VideoCapture(self.video_path)
+        frame_num = int(time * vid.get(cv2.CAP_PROP_FPS))
         vid.set(cv2.CAP_PROP_POS_FRAMES, frame_num)
         ret, frame = vid.read()
         title = f"Select {division_type} {field_type}"
-        sel = select_region(frame, title)
+        sel = self.select_region(frame, title)
         self.ocr_regions[division_type][field_type] = list(sel)
+
+    def select_region(self, img, title="Select region"):
+        cv2.namedWindow(title, cv2.WINDOW_NORMAL)
+        print(title)
+        top_left_x, top_left_y, width, height = cv2.selectROI(windowName=title, img=img)
+        bottom_right_x = top_left_x + width
+        bottom_right_y = top_left_y + height
         cv2.destroyWindow(winname=title)
+        return top_left_x, top_left_y, bottom_right_x, bottom_right_y
 
     def set_video_path(self, vid_path):
         self.video_path = vid_path
+        self.video_obj = cv2.VideoCapture(self.video_path)
+        self.fps = self.video_obj.get(cv2.CAP_PROP_FPS)
 
     def select_video_path(self):
         self.set_video_path(FileBrowser("Select video file", os.getcwd()).browse())
+
 
 CONFIG = Config()
