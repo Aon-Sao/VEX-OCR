@@ -1,18 +1,52 @@
+from subprocess import run
+import functools
 import cv2
 from Frame import Frame
 from config import CONFIG
 
+def notify(dest):
+    def wrapper_maker(func):
+        @functools.wraps(func)
+        def wrapper():
+            message = "No message"
+            try:
+                result = func()
+                message = "SUCCESS"
+                return result
+            except Exception as e:
+                message = f"{type(e).__name__}: {e}"
+                raise e
+            finally:
+                run(["curl", "-d", f'"{message}"', f"ntfy.sh/{dest}"], capture_output=True)
+        return wrapper
+    return wrapper_maker
+
+def send_match(match):
+    # For now, just display them
+    print(match)
+
+def classify_division(div_name):
+    for ev in CONFIG.events:
+        if div_name.lower() in [i.lower() for i in ev.division_names]:
+            return ev.prog_type
+    return None
 
 def get_frame(video_pos, ocr = True):
-    # print(f"DEBUG: getting frame {video_pos.frame()}, OCR: {ocr}")
+    # print(f"DEBUG: getting frame {video_pos.frame()}")
     CONFIG.video_obj.set(cv2.CAP_PROP_POS_FRAMES, video_pos.frame())
     _, frame = CONFIG.video_obj.read()
     return Frame(video_pos, frame, ocr=ocr)
 
+def display_img(img):
+    cv2.namedWindow("display", cv2.WINDOW_NORMAL)
+    cv2.imshow("display", img)
+    cv2.waitKey(0)
+    cv2.destroyWindow("display")
+
 def skip_search(frame_generator, accept=None, reject=None, ocr=True):
     # By default, we are looking for driver frames
     if accept is None:
-        accept = lambda x: x.is_driver() and x.full_ocr
+        accept = lambda x: (x.is_driver() or x.is_auton()) and x.full_ocr()
     # If there is no reject condition, don't halt early
     if reject is None:
         reject = lambda x: False
@@ -20,6 +54,7 @@ def skip_search(frame_generator, accept=None, reject=None, ocr=True):
     # Do-While
     def do(pos):
         frame = get_frame(pos, ocr=ocr)
+        # display_img(frame.cv2_frame)
         if accept(frame):
             return "ACCEPT", frame
         elif reject(frame):

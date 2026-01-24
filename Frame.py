@@ -1,3 +1,5 @@
+import cv2
+
 from OCR import OCR
 
 class Frame:
@@ -9,17 +11,24 @@ class Frame:
         self.match_num = None
         self.match_mode = None
         self.division_name = None
-        self.full_ocr = False
+        self.division_type = None
+        self._full_ocr = False
+
         if ocr:
             results = OCR.analyze_frame(self.cv2_frame)
             (self.timer_seconds,
              self.timer_string,
              self.match_num,
              self.match_mode,
-             self.division_name
+             self.division_name,
+             self.division_type
              ) = results
             if None not in list(results):
-                self.full_ocr = True
+                self._full_ocr = True
+            if self.is_auton():
+                self.match_mode = "auton"
+            if self.is_driver():
+                self.match_mode = "driver"
 
     def __str__(self):
         return "Frame Object\n" + \
@@ -39,3 +48,5 @@ class Frame:
     def has_timer(self):
         return self.timer_seconds is not None
 
+    def full_ocr(self):
+        return self._full_ocr

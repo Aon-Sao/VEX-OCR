@@ -1,29 +1,60 @@
-# Frames and video seconds
-Use frames because that's what the video players we target do
+# Event Code / Sku
+* RE_STUFF
 
-# Video seconds and UTC seconds
-Do not treat as the same
+# Event Type
+* VIQRC
+* V5RC
+* VURC
 
-Robot events deltas are UTC seconds, driver timer skips are video seconds
+# Division Name
+* Math
+* Technology
+* Design
 
-# Information sets a match can use to fully self determine
-* div type
-* auton start
-* auton stop
-* driver start
-* driver stop
+# Grade / Age
+* ES
+* MS
+* HS
+* UNI
 
-OCR only
-* match num
-* div name
-* match timer
-* match mode
+ES is IQ+  
+MS is IQ+ or V5+  
+HS is V5+  
+UNI is VURC  
+Event Code has 1 event type  
+1 Event has 1 or more divisions  
+Division has only 1 event type  
 
-## Conversions
-Frame time + Match Time -> Stop time
-Stop time + Durations + 3 guesses -> Start time + Division Type
-Stop time + Division Type + Durations -> Start time
+# Results wanted
+* Start/stop frames for matches
+  - Turn frame into Boxcast seconds based on boxcast fps metadata (from READB)
+  - Turn frame into YouTube seconds based on ???
+  - Turn frame into video seconds
+* Name each match has
+* Division each match belongs to
+* Event Type each match belongs to
+* Event SKU each match belongs to
 
-### Unfavored conversions
-driver start + frame-by-frame -> auton stop
-auton stop + frame-by-frame -> driver start
+## Stream Seconds, Frames, Video Seconds
+| SS | 0 | 1  | 1.03 | 2.03 | 3.03 |
+| :---: | :---: | :---: | :---: | :---: | :---: |
+| FR | 0 | 30 | 31   | 61   | 91   |
+| VS | 0 | 1  | 21   | 22   | 23   |
+
+# Existing relations
+* Robot events knows Event SKU/Type pairings
+* Local TM knows what division names an Event Sku has before the matches occur
+  - At worlds, Local TM informs RE after unknown intervals
+* Each match name is unique in the division to which it belongs
+* Hand write which Boxcast stream IDs belong to which a given Division ID to READB
+
+# Proposed flow
+* RE Puller runs in background, stores on READB
+  - Div name <-> Event code known at match schedule generation
+* Boxcast Puller runs in background, stores on READB
+  - Account, stream, channel, etc. IDs. IDs everywhere.
+* Hand write to READB at event run time
+* Launch OCR program
+* Prefer to update READB with matches during OCR run
+* Notify humans
+* Publish in some manner to web
