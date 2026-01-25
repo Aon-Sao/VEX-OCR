@@ -1,10 +1,10 @@
 import functools
-from config import CONFIG
 
 
 # TODO: Prioritize frame over time
 class VideoPosition:
-    def __init__(self, frame: int = None, time: float | int = None):
+    def __init__(self, config, frame: int = None, time: float | int = None):
+        self.config = config
         self._frame, self._time = None, None
         if (frame is None) and (time is None):
             raise TypeError("Must specify either frame or time")
@@ -26,10 +26,10 @@ class VideoPosition:
         return str({"time": self.time(), "frame": self.frame()})
 
     def time(self):
-        return self._time if self._time is not None else self._frame / CONFIG.fps
+        return self._time if self._time is not None else self._frame / self.config.fps
 
     def frame(self):
-        return self._frame if self._frame is not None else round(self._time * CONFIG.fps)
+        return self._frame if self._frame is not None else round(self._time * self.config.fps)
 
     @staticmethod
     def do_if_compatible(func):
@@ -43,11 +43,11 @@ class VideoPosition:
 
     @do_if_compatible
     def __add__(self, other):
-        return VideoPosition(time=self.time() + other.time())
+        return VideoPosition(self.config, time=self.time() + other.time())
 
     @do_if_compatible
     def __sub__(self, other):
-        return VideoPosition(time=self.time() - other.time())
+        return VideoPosition(self.config, time=self.time() - other.time())
 
     @do_if_compatible
     def __lt__(self, other):
@@ -62,7 +62,7 @@ class VideoPosition:
         return self.time() == other.time()
 
     def __mul__(self, other):
-        return VideoPosition(time=self.time() * other)
+        return VideoPosition(self.config, time=self.time() * other)
 
     def __truediv__(self, other):
-        return VideoPosition(time=self.time() / other)
+        return VideoPosition(self.config, time=self.time() / other)

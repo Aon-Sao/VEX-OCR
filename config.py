@@ -2,56 +2,15 @@ import os
 from subprocess import run
 import cv2
 from FileBrowser import FileBrowser
-from Event import _V5RC, _VURC, _VIQRC
+from DataObjects import *
 
 class Config:
-    # Singleton
-    instance = None
-    def __new__(cls):
-        if cls.instance is None:
-            cls.instance = super().__new__(cls)
-        return cls.instance
-
-    class events:  # So we can write CONFIG.events.V5RC.driver_duration, etc.
-        V5RC = _V5RC(
-            event_sku="some_event_sku",
-            division_names=[
-                "some_division_name_1",
-                "some_division_name_2",
-            ],
-        )
-        VURC = _VURC(
-            event_sku="some_event_sku",
-            division_names=[
-                "Technology",
-            ],
-        )
-        VIQRC = _VIQRC(
-            event_sku="some_event_sku",
-            division_names=[
-                "some_division_name_5",
-                "some_division_name_6",
-            ],
-        )
-
-        def __iter__(self):
-            return [self.V5RC, self.VURC, self.VIQRC].__iter__()
-
-        def __len__(self):
-            return [self.V5RC, self.VURC, self.VIQRC].__len__()
-
-        def __getitem__(self, item):
-            return {"V5RC": self.V5RC, "VURC": self.VURC, "VIQRC": self.VIQRC}.__getitem__(item)
-
-    events = events()
-
     ocr_regions = {
         "MATCH_NUM": [0, 0, 0, 0],
         "DIVISION_NAME": [0, 0, 0, 0],
         "MATCH_TIMER": [0, 0, 0, 0],
         "MATCH_MODE": [0, 0, 0, 0],
     }
-
     # Affects how big a skip we'll take
     skip_lambda = lambda match_phase_duration: match_phase_duration / 3
     # Seconds between auton and driver
@@ -81,32 +40,35 @@ class Config:
         "Auton", "Autonomous",
         "Control",
     ]
-    stream_id = -1
-    division_id = -1
 
-    def __init__(self):
-        # Only modify values above
-        self.video_path = None
+    # Singleton
+    instance = None
+    def __new__(cls, input_data: InputData):
+        if cls.instance is None:
+            cls.instance = super().__new__(cls)
+        return cls.instance
+
+    def __init__(self, input_data: InputData):
         self.frame_count = None
         self.fps = None
         self.video_obj = None
-        for ev in self.events:
-            self.expected_strings.append(ev.prog_type)
-            self.expected_strings.extend(ev.division_names)
+        self.pg_conn_str = input_data.pg_conn_str
+        self.set_video_path(input_data.ssd_vid_path)
+        self.divisions = input_data.divisions
+        for dv in self.divisions:
+            self.expected_strings.append(dv.program_code)
+            self.expected_strings.append(dv.name)
         self.expected_strings = [i.lower() for i in self.expected_strings]
         self.driver_skip_size = self.get_driver_skip_size(Config.skip_lambda)
         self.auton_skip_size = self.get_auton_skip_size(Config.skip_lambda)
-        # I will confess the below comprehension is incomprehensible
-        # I leave it in, for now, for the sake of practice
-        # It makes a list of all the division names in all the events
-        self.division_names = [name for ev in self.events for name in ev.division_names]
+        self.division_names = [i.name for i in self.divisions]
 
     def get_driver_skip_size(self, skip_lambda):
-        shortest_driver = min([ev.driver_duration for ev in self.events if ev.driver_duration > 0])
+        shortest_driver = min([dv.driver_duration for dv in self.divisions if dv.driver_duration > 0])
         return skip_lambda(shortest_driver)
 
     def get_auton_skip_size(self, skip_lambda):
-        shortest_auton = min([ev.auton_duration for ev in self.events if ev.auton_duration > 0])
+        shortest_auton = min([dv.auton_duration for dv in self.divisions if dv.auton_duration > 0])
         return skip_lambda(shortest_auton)
 
     def select_ocr_regions(self, time):
@@ -149,6 +111,3 @@ class Config:
         n, d = fps_str.split(r"/")
         self.fps = float(n) / float(d)
         self.frame_count = int(total_frames)
-
-
-CONFIG = Config()

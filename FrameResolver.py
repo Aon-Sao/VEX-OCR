@@ -1,9 +1,8 @@
-import cv2
+from OCR import Ocr
 
-from OCR import OCR
-
-class Frame:
-    def __init__(self, video_pos, cv2_frame, ocr = False):
+class FrameResolver:
+    def __init__(self, config, video_pos, cv2_frame, ocr = False):
+        self.config = config
         self.video_pos = video_pos
         self.cv2_frame = cv2_frame
         self.timer_seconds = None
@@ -15,7 +14,7 @@ class Frame:
         self._full_ocr = False
 
         if ocr:
-            results = OCR.analyze_frame(self.cv2_frame)
+            results = Ocr(self.config).analyze_frame(self.cv2_frame)
             (self.timer_seconds,
              self.timer_string,
              self.match_num,

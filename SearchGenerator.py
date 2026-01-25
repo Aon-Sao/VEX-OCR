@@ -1,20 +1,19 @@
 from copy import deepcopy
-
 from VideoPosition import VideoPosition as vp
-from config import CONFIG
 
 
 class SearchGenerator:
 
-    def __init__(self, start, stop=None):
-        self.start = vp(time=start)
-        self.stop = vp(time=stop) if stop is not None else None
+    def __init__(self, config, start, stop=None):
+        self.config = config
+        self.start = vp(self.config, time=start)
+        self.stop = vp(self.config, time=stop) if stop is not None else None
         self.pos = self.start
 
     def communicator(self, func):
         msg = ("CONTINUE",)
         while msg[0] == "CONTINUE":
-            if not (vp(frame=0) <= self.pos <= vp(frame=CONFIG.frame_count)):
+            if not (vp(self.config, frame=0) <= self.pos <= vp(self.config, frame=self.config.frame_count)):
                 break
             msg = yield self.pos
             func(*msg)
@@ -22,7 +21,7 @@ class SearchGenerator:
     # Skipping by a "reasonable number of frames"
     # Pass negative values to go in reverse
     def seconds_based_skip(self, skip_size):
-        skip_size = vp(time=skip_size)
+        skip_size = vp(self.config, time=skip_size)
         def skipper(msg, frame):
             self.pos += skip_size
         return self.communicator(skipper)

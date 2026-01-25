@@ -58,3 +58,41 @@ Division has only 1 event type
 * Prefer to update READB with matches during OCR run
 * Notify humans
 * Publish in some manner to web
+
+# Match translations
+So far, overlays give matches a name of the form
+(PRACTICE|QUAL|QUALIFICATION|R16|QF|SF|F|FINALS?)\s(\d+)(-\d+)?
+The database identifies a match by
+* Event Sku -> RE-*-YY-\d+
+* Round -> \d+
+* Instance -> \d+
+* Division ID -> \d+
+* re_name -> (Team[wW]ork|Practice|Qualifier)\s#\d+
+
+# Database notes
+## Division_has_stream
+IGNORE
+## Divisions
+event sku
+id means RE division id
+seq is division sequence
+## Events
+id is robot events event id
+event sku
+program id <-> program code mapping
+seq ???
+## Matches
+id is robot events match id
+event sku
+division id
+round ???
+match is match num without string component
+re_name has _some_ kinda string and the match number
+## Streams
+event sku
+division id
+name is stream name
+channel id
+broadcast id
+broadcast channel id
+seq

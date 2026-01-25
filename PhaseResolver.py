@@ -1,9 +1,9 @@
 from VideoRegion import VideoRegion
-from config import CONFIG
 from VideoPosition import VideoPosition as vp
 
-class Phase:
-    def __init__(self, initial_frame):
+class PhaseResolver:
+    def __init__(self, config, initial_frame):
+        self.config = config
         self.initial_frame = initial_frame
         self.mode = initial_frame.match_mode
         self.match_num = initial_frame.match_num
@@ -15,12 +15,12 @@ class Phase:
         return self.region.__str__()
 
     def _frame_and_timer_to_stop(self):
-        return self.initial_frame.video_pos + vp(time=self.initial_frame.timer_seconds)
+        return self.initial_frame.video_pos + vp(self.config, time=self.initial_frame.timer_seconds)
 
     def _stop_and_div_type_to_start(self, stop):
-        ev = CONFIG.events[self.division_type]
-        duration = ev.driver_duration if self.mode == "driver" else ev.auton_duration
-        return stop - vp(time=duration)
+        dv = [dv for dv in self.config.divisions if dv.program_code == self.division_type][0]
+        duration = dv.driver_duration if self.mode == "driver" else dv.auton_duration
+        return stop - vp(self.config, time=duration)
 
     def _find_region(self):
         stop_pos = self._frame_and_timer_to_stop()

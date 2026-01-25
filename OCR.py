@@ -3,23 +3,21 @@ from thefuzz import fuzz
 
 import cv2
 
-import utils
-from config import CONFIG
 import pytesseract
 
 class Ocr:
     # Singleton
     instance = None
-    def __new__(cls):
+    def __new__(cls, config):
         if cls.instance is None:
             cls.instance = super().__new__(cls)
         return cls.instance
 
-    def __init__(self):
-        pytesseract.pytesseract.tesseract_cmd = CONFIG.tesseract_path
+    def __init__(self, config):
+        self.config = config
+        pytesseract.pytesseract.tesseract_cmd = self.config.tesseract_path
 
-    @staticmethod
-    def interpret_results(raw_results):
+    def interpret_results(self, raw_results):
         def longest_best_match(dct):
             score_sort = sorted(dct.items(), key=lambda x: x[1], reverse=True)
             best_score = score_sort[0][1]
@@ -37,13 +35,13 @@ class Ocr:
 
         match_num, div_name, match_timer, match_mode = raw_results.values()
         timer_secs, timer_str = timer_str_to_sec(match_timer)
-        if not match_mode.lower() in CONFIG.expected_strings:
+        if not match_mode.lower() in self.config.expected_strings:
             match_mode = None
         if match_num == "":
             match_num = None
-        ratios = {i: fuzz.partial_ratio(div_name.lower(), i) for i in CONFIG.division_names}
+        ratios = {i: fuzz.partial_ratio(div_name.lower(), i) for i in self.config.division_names}
         div_name = longest_best_match(ratios)
-        div_type = utils.classify_division(div_name)
+        div_type = [i.program_code for i in self.config.divisions if i.name == div_name][0]
         return timer_secs, timer_str, match_num, match_mode, div_name, div_type
 
     def analyze_frame(self, img):
@@ -62,7 +60,7 @@ class Ocr:
         return img[y_start:y_stop, x_start:x_stop]
 
     def split_frame(self, img):
-        return [self.crop_image(img, *region) for region in CONFIG.ocr_regions.values()]
+        return [self.crop_image(img, *region) for region in self.config.ocr_regions.values()]
 
     @staticmethod
     def grayscale(img):
@@ -72,8 +70,7 @@ class Ocr:
     def threshold(img):
         return cv2.threshold(img, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
 
-    @staticmethod
-    def ocr_batch(images):
+    def ocr_batch(self, images):
         with TemporaryDirectory() as tmpdir:
             i = 0
             for img in images:
@@ -84,8 +81,6 @@ class Ocr:
 
             results = pytesseract.image_to_string(f"{tmpdir}/batch.txt").split("\x0c")
             res_dct = dict()
-            for region, raw in zip(CONFIG.ocr_regions.keys(), results):
+            for region, raw in zip(self.config.ocr_regions.keys(), results):
                 res_dct[region] = raw.strip()
             return res_dct
-
-OCR = Ocr()

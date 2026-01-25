@@ -1,17 +1,16 @@
 import utils
-from Phase import Phase
+from PhaseResolver import PhaseResolver
 from SearchGenerator import SearchGenerator
-from config import *
 from VideoPosition import VideoPosition as vp
 
 
-class Match:
-    def __init__(self, initial_frame):
+class MatchResolver:
+    def __init__(self, config, initial_frame):
+        self.config = config
         self.initial_frame = initial_frame
         self.match_num = initial_frame.match_num
         self.division_name = initial_frame.division_name
         self.division_type = initial_frame.division_type
-        self.event = CONFIG.events[self.division_type]
         self.auton = None
         self.driver = None
 
@@ -24,7 +23,6 @@ class Match:
             self.division_type,
             self.auton,
             self.driver,
-            self.event,
         ]
 
     def __str__(self):
@@ -38,7 +36,7 @@ class Match:
 
     def find_phases(self):
         # TODO: handle no auton, e.g. VIQRC
-        initial_phase = Phase(self.initial_frame)
+        initial_phase = PhaseResolver(self.config, self.initial_frame)
         if initial_phase.is_driver():
             self.driver = initial_phase
             self.auton = self._find_adjacent_phase(search_ahead=False)
@@ -50,16 +48,16 @@ class Match:
     def _find_adjacent_phase(self, search_ahead=False):
         if search_ahead:  # For driver
             start = self.auton.region.end()
-            end = start + vp(time=CONFIG.max_phase_distance)
-            skip = CONFIG.driver_skip_size
+            end = start + vp(self.config, time=self.config.max_phase_distance)
+            skip = self.config.driver_skip_size
             accept = lambda x: x.is_driver() and x.full_ocr() and x.match_num == self.match_num
             reject = lambda x: x.is_auton()
         else:  # Search behind for auton
             end = self.driver.region.start()
-            start = end - vp(time=CONFIG.max_phase_distance)
-            skip = CONFIG.auton_skip_size * -1  # Need to actually search backwards
+            start = end - vp(self.config, time=self.config.max_phase_distance)
+            skip = self.config.auton_skip_size * -1  # Need to actually search backwards
             accept = lambda x: x.is_auton() and x.full_ocr() and x.match_num == self.match_num
             reject = lambda x: x.is_driver()
-        gen = SearchGenerator(start, end).seconds_based_skip(skip)
-        frame, _ = utils.skip_search(gen, accept, reject)
-        return Phase(frame) if frame is not None else None
+        gen = SearchGenerator(self.config, start, end).seconds_based_skip(skip)
+        frame, _ = utils.skip_search(self.config, gen, accept, reject)
+        return PhaseResolver(self.config, frame) if frame is not None else None
