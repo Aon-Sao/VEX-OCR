@@ -89,3 +89,36 @@ class DatabaseInteractor:
                """
         )
         return cur.fetchone()[7]  # where the delta ended up in the "result row"
+
+    @pass_connection
+    def insert_found_match(self, match_info, conn=None, cur=None):
+        """
+        Insert the found match
+        """
+        cur.execute(t"""
+            insert into ocr_matches (
+                video_id, worker_host,
+                division_name, match_name,
+                
+                auton_start_sec, auton_start_frame,
+                auton_stop_sec, auton_stop_frame,
+                driver_start_sec, driver_start_frame,
+                driver_stop_sec, driver_stop_frame,
+                
+                found_complete_match,
+                notes)
+            values (
+                {config.video_id}, {config.worker_host},
+                {match_info.division_name}, {match_info.match_name},
+                
+                {match_info.auton_start_sec}, {match_info.auton_start_frame},
+                {match_info.auton_stop_sec}, {match_info.auton_stop_frame},
+                {match_info.driver_start_sec}, {match_info.driver_start_frame},
+                {match_info.driver_stop_sec}, {match_info.driver_stop_frame},
+                
+                {match_info.found_complete_match},
+                {match_info.notes}
+            );
+            """
+        )
+        return None
