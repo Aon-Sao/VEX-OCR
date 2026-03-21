@@ -67,8 +67,8 @@ class Config:
             self.ocr_regions[k] = getattr(input_data.ocr_regions, k)
 
     def get_skip_sizes(self):
-        shortest_driver = min([dv.driver_duration for dv in self.divisions if dv.driver_duration > 0])
-        shortest_auton = min([dv.auton_duration for dv in self.divisions if dv.auton_duration > 0])
+        shortest_driver = min([dv.driver_duration for dv in self.divisions])
+        shortest_auton = min([dv.auton_duration for dv in self.divisions])
         return self.make_skip_size(shortest_driver), self.make_skip_size(shortest_auton)
 
     def set_video_path(self, vid_path):
