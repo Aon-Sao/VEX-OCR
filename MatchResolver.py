@@ -1,63 +1,88 @@
+import re
+
 import utils
+from Config import CONFIG as config
 from PhaseResolver import PhaseResolver
 from SearchGenerator import SearchGenerator
-from VideoPosition import VideoPosition as vp
+from VideoRegion import VideoRegion as VidReg
+from VideoPosition import VideoPosition as VidPos
+import DataObjects
+from FrameResolver import FrameResolver
 
 
 class MatchResolver:
-    def __init__(self, config, initial_frame):
-        self.config = config
+    def __init__(self, initial_frame: FrameResolver):
         self.initial_frame = initial_frame
-        self.match_num = initial_frame.match_num
+        self.match_name = initial_frame.match_name
         self.division_name = initial_frame.division_name
-        self.division_type = initial_frame.division_type
-        self.auton = None
-        self.driver = None
-
-        self.find_phases()
+        self.program_type = initial_frame.program_type
+        self.auton, self.driver = self.find_phases()
+        if self.auton is not None and self.driver is not None:
+            self.region = VidReg(self.auton.region.start(), self.driver.region.end())
 
     def complete(self):
         return None not in [
-            self.match_num,
+            self.match_name,
             self.division_name,
-            self.division_type,
+            self.program_type,
             self.auton,
-            self.driver,
+            self.driver
         ]
 
     def __str__(self):
         return f"Match Object\n" + \
-                ("INCOMPLETE!\n" if not self.complete() else "") + \
-                f"\tMatch Num: {self.match_num}\n" + \
-                f"\tDivision Name: {self.division_name}\n" + \
-                f"\tDivision Type: {self.division_type}\n" + \
-                f"\tAuton: {str(self.auton).replace("\n", "\n\t       ")}\n" + \
-                f"\tDriver: {str(self.driver).replace("\n", "\n\t        ")}"
+            ("INCOMPLETE!\n" if not self.complete() else "") + \
+            f"\tMatch Num: {self.match_name}\n" + \
+            f"\tDivision Name: {self.division_name}\n" + \
+            f"\tProgram Type: {self.program_type}\n" + \
+            f"\tAuton: {str(self.auton).replace("\n", "\n\t       ")}\n" + \
+            f"\tDriver: {str(self.driver).replace("\n", "\n\t        ")}"
+
+
+    def get_data_obj(self):
+        event_sku, div_id = self.event_sku_and_division_id_lookup()
+        rnd, match_num, instance = self.match_name_parser()
+        return DataObjects.Match(self.region.start().time(), self.region.end().time(), event_sku, div_id, rnd, instance, match_num)
+
+    def event_sku_and_division_id_lookup(self):
+        for div in config.divisions:
+            if self.division_name == div.name:
+                return div.event_sku, div.id
+        return None
+
+    def match_name_parser(self):
+        exp = re.compile(r"(qualification|qual|teamwork|final|qf|sf|r16|r32|r64|r128)\s?#?\s?(\d+)\s?-?\s?(\d+)?")
+        if mat := re.match(exp, self.match_name.lower()):
+            name_str = mat.group(1)
+            num_str = mat.group(2)
+            instance_str = mat.group(3) if mat.group(3) else "1"
+            match_name_enum_dct = {
+                "practice": 1,
+                "qualifier": 2,
+                "qual": 2,
+                "teamwork": 2,
+                "qf": 3,
+                "sf": 4,
+                "final": 5,
+                "r16": 6,
+                "match": 15
+            }
+            rnd = match_name_enum_dct[name_str]
+            return int(rnd), int(num_str), int(instance_str)
+        else:
+            return None
 
     def find_phases(self):
-        # TODO: handle no auton, e.g. VIQRC
-        initial_phase = PhaseResolver(self.config, self.initial_frame)
-        if initial_phase.is_driver():
-            self.driver = initial_phase
-            self.auton = self._find_adjacent_phase(search_ahead=False)
-        elif initial_phase.is_auton():
-            self.auton = initial_phase
-            self.driver = self._find_adjacent_phase(search_ahead=True)
-
-    # Could probably combine with above method later
-    def _find_adjacent_phase(self, search_ahead=False):
-        if search_ahead:  # For driver
-            start = self.auton.region.end()
-            end = start + vp(self.config, time=self.config.max_phase_distance)
-            skip = self.config.driver_skip_size
-            accept = lambda x: x.is_driver() and x.full_ocr() and x.match_num == self.match_num
-            reject = lambda x: x.is_auton()
-        else:  # Search behind for auton
-            end = self.driver.region.start()
-            start = end - vp(self.config, time=self.config.max_phase_distance)
-            skip = self.config.auton_skip_size * -1  # Need to actually search backwards
-            accept = lambda x: x.is_auton() and x.full_ocr() and x.match_num == self.match_num
-            reject = lambda x: x.is_driver()
-        gen = SearchGenerator(self.config, start, end).seconds_based_skip(skip)
-        frame, _ = utils.skip_search(self.config, gen, accept, reject)
-        return PhaseResolver(self.config, frame) if frame is not None else None
+        print(f"DEBUG: resolving driver phase")
+        driver_phase = PhaseResolver(self.initial_frame)
+        start = driver_phase.region.start()
+        end = start - VidPos(time=config.max_phase_distance)
+        skip = VidPos(frame=config.auton_skip_size * -1)
+        accept = lambda x: x.is_auton() and x.full_ocr() and x.match_name  == self.match_name
+        # skipping a reject lambda
+        gen = SearchGenerator(start, end).seconds_based_skip(skip)
+        print(f"DEBUG: searching for auton phase")
+        frame, _ = utils.skip_search(gen, accept)
+        print(f"DEBUG: resolving auton phase")
+        auton_phase = PhaseResolver(frame) if frame is not None else None
+        return auton_phase, driver_phase

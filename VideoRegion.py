@@ -7,7 +7,7 @@ class VideoRegion:
         self.right = max(left, right)
 
     def __str__(self):
-        return f"{self.left.time()}s -- {self.right.time()}s\n" + \
+        return f"{self.left.time():.2f}s -- {self.right.time():.2f}s\n" + \
                 f"{self.left.frame()}f -- {self.right.frame()}f"
 
     def start(self):

@@ -1,45 +1,56 @@
 import utils
+from Config import CONFIG as config
+from DatabaseInteractor import DatabaseInteractor
 from MatchResolver import MatchResolver
 from SearchGenerator import SearchGenerator
-from VideoPosition import VideoPosition as vp
-
+from VideoPosition import VideoPosition as VidPos
 
 class MatchFinder:
     # Singleton
     instance = None
-    def __new__(cls, config):
+    def __new__(cls):
         if cls.instance is None:
             cls.instance = super().__new__(cls)
         return cls.instance
 
-    def __init__(self, config):
-        self.config = config
-        self.furthest_pos = vp(self.config, time=0)
+    def __init__(self):
+        self.furthest_pos = VidPos(time=config.scan_start_offset)
 
-
-    # TODO: picking up from end of match should be a last resort
     def find_all_matches(self):
-        video_end = vp(self.config, frame=self.config.frame_count)
-        shortest_division = min(self.config.divisions, key=lambda ev: ev.auton_duration + ev.driver_duration)
-        shortest_possible_match = vp(self.config, time=shortest_division.auton_duration + shortest_division.driver_duration)
+        video_end = VidPos(frame=config.frame_count)
+        shortest_driver = min([dv.driver_duration for dv in config.divisions if dv.driver_duration > 0])
 
-        start = vp(self.config, frame=0)
-        end = video_end
-        # We don't mind whether we miss auton as long as we hit driver
-        skip_size = vp(self.config, time=max(self.config.driver_skip_size, self.config.auton_skip_size))
+        start = self.furthest_pos
+        skip_size = VidPos(frame=config.driver_skip_size)
 
-        while self.furthest_pos < (video_end - shortest_possible_match):
-            print(f"Progress: {(self.furthest_pos.frame() / video_end.frame()) * 100}%")
-            gen = SearchGenerator(self.config, start, end).seconds_based_skip(skip_size)
+        matches_may_remain = True
+        while matches_may_remain:
+            print(f"Progress: {(self.furthest_pos.frame() / video_end.frame()) * 100:.0f}%")
+            gen = SearchGenerator(start, video_end).seconds_based_skip(skip_size)
             if (match := self.find_next_match(gen)) is not None:
                 if match.complete():
-                    start = match.driver.region.end()
+                    print(f"DEBUG: complete match\n{match}")
+                    start = self.process_found_match(match)
                 elif match.driver is not None:
+                    print(f"DEBUG: partial match\n{match}")
                     start = match.driver.region.end()
                 elif match.auton is not None:
+                    print(f"DEBUG: partial match\n{match}")
                     start = match.auton.region.end()
-                utils.send_match(match)
+                else:
+                    print(f"DEBUG: partial match\n{match}")
+                    start = self.furthest_pos
+            matches_may_remain = self.furthest_pos < (video_end - VidPos(time=shortest_driver))
 
-    def find_next_match(self, frame_generator):
-        frame, self.furthest_pos = utils.skip_search(self.config, frame_generator)
-        return MatchResolver(self.config, frame) if frame else None
+    def find_next_match(self, search_generator: SearchGenerator):
+        print(f"DEBUG: searching for driver phase")
+        frame, furthest_pos = utils.skip_search(search_generator)
+        self.furthest_pos = furthest_pos
+        return MatchResolver(frame) if frame else None
+
+    @staticmethod
+    def process_found_match(match: MatchResolver):
+        match_info = match.get_data_obj()
+        dbi = DatabaseInteractor(config.pg_conn_str)
+        dbi.update_found_match(match_info)
+        return match.driver.region.end()

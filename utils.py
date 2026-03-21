@@ -1,7 +1,11 @@
+import os
 from subprocess import run
 import functools
 import cv2
+
+from FileBrowser import FileBrowser
 from FrameResolver import FrameResolver
+from Config import CONFIG as config
 
 def notify(dest):
     def wrapper_maker(func):
@@ -20,15 +24,11 @@ def notify(dest):
         return wrapper
     return wrapper_maker
 
-def send_match(match):
-    # For now, just display them
-    print(match)
-
-def get_frame(config, video_pos, ocr = True):
+def get_frame(video_pos, ocr = True):
     # print(f"DEBUG: getting frame {video_pos.frame()}")
     config.video_obj.set(cv2.CAP_PROP_POS_FRAMES, video_pos.frame())
     _, frame = config.video_obj.read()
-    return FrameResolver(config, video_pos, frame, ocr=ocr)
+    return FrameResolver(video_pos, frame, ocr=ocr)
 
 def display_img(img):
     cv2.namedWindow("display", cv2.WINDOW_NORMAL)
@@ -36,17 +36,17 @@ def display_img(img):
     cv2.waitKey(0)
     cv2.destroyWindow("display")
 
-def skip_search(config, frame_generator, accept=None, reject=None, ocr=True):
+def skip_search(frame_generator, accept=None, reject=None, ocr=True):
     # By default, we are looking for driver frames
     if accept is None:
-        accept = lambda x: (x.is_driver() or x.is_auton()) and x.full_ocr()
+        accept = lambda x: x.is_driver() and x.full_ocr()
     # If there is no reject condition, don't halt early
     if reject is None:
         reject = lambda x: False
 
     # Do-While
     def do(pos):
-        frame = get_frame(config, pos, ocr=ocr)
+        frame = get_frame(pos, ocr=ocr)
         # display_img(frame.cv2_frame)
         if accept(frame):
             return "ACCEPT", frame
@@ -74,3 +74,4 @@ def skip_search(config, frame_generator, accept=None, reject=None, ocr=True):
 def highlight_region(img, top_left_x, top_left_y, bottom_right_x, bottom_right_y):
     cv2.rectangle(img, (top_left_x, top_left_y), (bottom_right_x, bottom_right_y), (255, 0, 0), 5)
     return img
+

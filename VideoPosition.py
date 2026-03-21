@@ -1,35 +1,40 @@
 import functools
+from decimal import Decimal
+from Config import CONFIG as config
 
 
-# TODO: Prioritize frame over time
 class VideoPosition:
-    def __init__(self, config, frame: int = None, time: float | int = None):
-        self.config = config
-        self._frame, self._time = None, None
-        if (frame is None) and (time is None):
-            raise TypeError("Must specify either frame or time")
-        elif time is not None:
-            if isinstance(time, VideoPosition):
-                time = time.time()  #...nice...
-            elif not (isinstance(time, float) or isinstance(time, int)):
-                raise TypeError(f"time must be a number, not {type(time)}")
-            self._time = time
-        elif frame is not None:  # frame is set
-            if isinstance(frame, VideoPosition):
-                self._frame = frame.frame()
-            elif not isinstance(frame, int):
-                raise TypeError(f"frame must be an int, not {type(frame)}")
-            else:
-                self._frame = frame
+    def __init__(self, frame: int = None, time: float | int = None):
+        if ((frame is None) and (time is None)) or ((frame is not None) and (time is not None)):
+            raise TypeError("Must specify either frame or time (exclusive)")
+        elif isinstance(frame, VideoPosition):
+            self._frame = frame.frame()
+        elif isinstance(time, VideoPosition):
+            self._frame = time.frame()
+        elif isinstance(frame, int):
+            self._frame = frame
+        elif type(time) in [float, int, Decimal]:
+            self._frame = round(time * config.fps)
+        else:
+            raise TypeError("time/frame must be one of: [float, int, Decimal, VideoPosition]")
+
 
     def __str__(self):
         return str({"time": self.time(), "frame": self.frame()})
 
     def time(self):
-        return self._time if self._time is not None else self._frame / self.config.fps
+        return self._frame / config.fps
+
+    def pretty_time(self):
+        total_seconds = int(self.time())
+        total_minutes = int(total_seconds // 60)
+        hours = int(total_minutes // 60)
+        minutes = int(total_minutes % 60)
+        seconds = int(total_seconds % 60)
+        return f"{hours}:{minutes}:{seconds}"
 
     def frame(self):
-        return self._frame if self._frame is not None else round(self._time * self.config.fps)
+        return self._frame
 
     @staticmethod
     def do_if_compatible(func):
@@ -43,26 +48,26 @@ class VideoPosition:
 
     @do_if_compatible
     def __add__(self, other):
-        return VideoPosition(self.config, time=self.time() + other.time())
+        return VideoPosition(frame=self.frame() + other.frame())
 
     @do_if_compatible
     def __sub__(self, other):
-        return VideoPosition(self.config, time=self.time() - other.time())
+        return VideoPosition(frame=self.frame() - other.frame())
 
     @do_if_compatible
     def __lt__(self, other):
-        return self.time() < other.time()
+        return self.frame() < other.frame()
 
     @do_if_compatible
     def __le__(self, other):
-        return self.time() <= other.time()
+        return self.frame() <= other.frame()
 
     @do_if_compatible
     def __eq__(self, other):
-        return self.time() == other.time()
+        return self.frame() == other.frame()
 
     def __mul__(self, other):
-        return VideoPosition(self.config, time=self.time() * other)
+        return VideoPosition(frame=self.frame() * other)
 
     def __truediv__(self, other):
-        return VideoPosition(self.config, time=self.time() / other)
+        return VideoPosition(frame=self.frame() / other)

@@ -1,18 +1,22 @@
 import os
 from subprocess import run
+
 import cv2
+from DataObjects import InputData
 from FileBrowser import FileBrowser
-from DataObjects import *
+
 
 class Config:
-    ocr_regions = {
-        "MATCH_NUM": [0, 0, 0, 0],
-        "DIVISION_NAME": [0, 0, 0, 0],
-        "MATCH_TIMER": [0, 0, 0, 0],
-        "MATCH_MODE": [0, 0, 0, 0],
-    }
     # Affects how big a skip we'll take
-    skip_lambda = lambda match_phase_duration: match_phase_duration / 3
+    # We want to guarantee 2 or 3 hits in a phase
+    def make_skip_size(self, phase_duration):
+        return int((phase_duration / 3) * self.fps)
+    ocr_regions = {
+        "MATCH_NUM": None,
+        "DIVISION_NAME": None,
+        "MATCH_TIMER": None,
+        "MATCH_MODE": None
+    }
     # Seconds between auton and driver
     max_phase_distance = 5 * 60
     tesseract_path = "/usr/sbin/tesseract"
@@ -43,40 +47,53 @@ class Config:
 
     # Singleton
     instance = None
-    def __new__(cls, input_data: InputData):
+    def __new__(cls):
         if cls.instance is None:
             cls.instance = super().__new__(cls)
         return cls.instance
 
-    def __init__(self, input_data: InputData):
-        self.frame_count = None
-        self.fps = None
-        self.video_obj = None
+    def configure(self, input_data: InputData):
+        self.scan_start_offset = input_data.scan_start_offset
         self.pg_conn_str = input_data.pg_conn_str
         self.set_video_path(input_data.ssd_vid_path)
         self.divisions = input_data.divisions
-        for dv in self.divisions:
-            self.expected_strings.append(dv.program_code)
-            self.expected_strings.append(dv.name)
-        self.expected_strings = [i.lower() for i in self.expected_strings]
-        self.driver_skip_size = self.get_driver_skip_size(Config.skip_lambda)
-        self.auton_skip_size = self.get_auton_skip_size(Config.skip_lambda)
         self.division_names = [i.name for i in self.divisions]
+        self.expected_strings.extend(self.division_names)
+        self.expected_strings.extend({i.program_code for i in self.divisions})
+        self.expected_strings = map(lambda s: s.tolower, self.expected_strings)
+        self.driver_skip_size, self.auton_skip_size = self.get_skip_sizes()
 
-    def get_driver_skip_size(self, skip_lambda):
+        for k in self.ocr_regions.keys():
+            self.ocr_regions[k] = getattr(input_data.ocr_regions, k)
+
+    def get_skip_sizes(self):
         shortest_driver = min([dv.driver_duration for dv in self.divisions if dv.driver_duration > 0])
-        return skip_lambda(shortest_driver)
-
-    def get_auton_skip_size(self, skip_lambda):
         shortest_auton = min([dv.auton_duration for dv in self.divisions if dv.auton_duration > 0])
-        return skip_lambda(shortest_auton)
+        return self.make_skip_size(shortest_driver), self.make_skip_size(shortest_auton)
+
+    def set_video_path(self, vid_path):
+        self.video_path = vid_path
+        self.video_obj = cv2.VideoCapture(self.video_path)
+        self.set_fps_and_total_frames()
+
+    def set_fps_and_total_frames(self):
+        proc = run(["ffprobe", "-v", "error", "-select_streams", "v:0", "-count_packets", "-of",
+                    "default=noprint_wrappers=1:nokey=1",
+                    "-show_entries", "stream=avg_frame_rate,nb_read_packets", self.video_path],
+                   capture_output=True)
+        output = proc.stdout.decode()
+        fps_str, total_frames = output.split("\n", maxsplit=1)
+        n, d = fps_str.split(r"/")
+        self.fps = float(n) / float(d)
+        self.frame_count = int(total_frames)
 
     def select_ocr_regions(self, time):
         for region in self.ocr_regions.keys():
-            self.select_ocr_region(time, region)
+            if self.ocr_regions[region] is None:
+                self.select_ocr_region(time, region)
 
     def select_ocr_region(self, time, field_type):
-        frame_num = int(time * self.fps)
+        frame_num = int(float(time) * self.fps)
         self.video_obj.set(cv2.CAP_PROP_POS_FRAMES, frame_num)
         ret, frame = self.video_obj.read()
         title = f"Select {field_type}"
@@ -93,21 +110,8 @@ class Config:
         cv2.destroyWindow(winname=title)
         return top_left_x, top_left_y, bottom_right_x, bottom_right_y
 
-    def set_video_path(self, vid_path):
-        self.video_path = vid_path
-        self.video_obj = cv2.VideoCapture(self.video_path)
-        self.set_fps_and_total_frames()
-
     def select_video_path(self):
         self.set_video_path(FileBrowser("Select video file", os.getcwd()).browse())
 
-    def set_fps_and_total_frames(self):
-        proc = run(["ffprobe", "-v", "error", "-select_streams", "v:0", "-count_packets", "-of",
-                    "default=noprint_wrappers=1:nokey=1",
-                    "-show_entries", "stream=avg_frame_rate,nb_read_packets", self.video_path],
-                   capture_output=True)
-        output = proc.stdout.decode()
-        fps_str, total_frames = output.split("\n", maxsplit=1)
-        n, d = fps_str.split(r"/")
-        self.fps = float(n) / float(d)
-        self.frame_count = int(total_frames)
+
+CONFIG = Config()
