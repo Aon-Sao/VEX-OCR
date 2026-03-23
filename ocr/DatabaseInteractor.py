@@ -110,7 +110,7 @@ class DatabaseInteractor:
                 found_complete_match,
                 notes)
             values (
-                {config.video_id}, {config.worker_host},
+                {match_info.video_id}, {match_info.worker_host},
                 {match_info.event_sku},
                 {match_info.division_name},
                 
