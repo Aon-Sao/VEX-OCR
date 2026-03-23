@@ -1,0 +1,17 @@
+{
+  "host": "example",
+  "videos": [
+    {
+      "video_id": 1,
+      "divisions": [
+        {
+          "event_sku": "RE-V5RC-24-8910",
+          "program_code": "V5RC",
+          "division_name": "Design"
+        }
+      ],
+      "network_path": "\\host\\drive\\folder\\file.mp4",
+      "scan_start_offset": 0
+    }
+  ]
+}
