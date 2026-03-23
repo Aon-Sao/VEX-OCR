@@ -5,6 +5,7 @@ import queue
 import threading
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 from multiprocessing import Manager
+from ocr import run_ocr
 
 # Import the entry point from your OCR package
 # Assumes: ocr_engine/processor.py has a function 'run_full_ocr'

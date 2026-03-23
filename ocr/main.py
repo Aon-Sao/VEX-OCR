@@ -1,5 +1,4 @@
 import argparse
-import json
 
 import msgspec
 from pathlib import Path
@@ -17,11 +16,11 @@ def parse_arguments():
         jsn = fin.read()
     return jsn
 
-def main(input_json_str):
+def run_ocr(input_json_str):
     input_data = msgspec.json.decode(input_json_str, type=InputData)
     config.configure(input_data)
     MatchFinder().find_all_matches()
 
 
 if __name__ == "__main__":
-    main(input_json_str=parse_arguments())
+    run_ocr(input_json_str=parse_arguments())

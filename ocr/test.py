@@ -1,4 +1,4 @@
-from main import main as program_entry
+from main import run_ocr
 
 def main():
     input_json_a = \
@@ -62,7 +62,7 @@ def main():
           }
         }"""
 
-    program_entry(input_json_c)
+    run_ocr(input_json_c)
 
 if __name__ == "__main__":
     main()
