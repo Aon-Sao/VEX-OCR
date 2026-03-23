@@ -2,6 +2,8 @@ from copy import deepcopy
 from VideoPosition import VideoPosition as VidPos
 from Config import CONFIG as config
 
+import logging
+log = logging.getLogger(__name__)
 
 class SearchGenerator:
 
@@ -22,9 +24,9 @@ class SearchGenerator:
     # Pass negative values to go in reverse
     def seconds_based_skip(self, skip_size: VidPos):
         if skip_size > VidPos(frame=0):
-            print(f"DEBUG: searching {self.start.pretty_time()} --> {self.stop.pretty_time()} ")
+            log.info(f"Searching {self.start.pretty_time()} --> {self.stop.pretty_time()}")
         else:
-            print(f"DEBUG: searching {self.stop.pretty_time()} <-- {self.start.pretty_time()} ")
+            log.info(f"Searching {self.stop.pretty_time()} <-- {self.start.pretty_time()}")
         def skipper(msg, frame):
             self.pos += skip_size
         return self.communicator(skipper)

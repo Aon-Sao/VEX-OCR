@@ -62,7 +62,7 @@ def main():
           }
         }"""
 
-    program_entry(input_json_c)
+    program_entry(input_json_a)
 
 if __name__ == "__main__":
     main()

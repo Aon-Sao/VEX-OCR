@@ -5,6 +5,9 @@ from MatchResolver import MatchResolver
 from SearchGenerator import SearchGenerator
 from VideoPosition import VideoPosition as VidPos
 
+import logging
+log = logging.getLogger(__name__)
+
 class MatchFinder:
     # Singleton
     instance = None
@@ -25,25 +28,26 @@ class MatchFinder:
 
         matches_may_remain = True
         while matches_may_remain:
-            print(f"Progress: {(self.furthest_pos.frame() / video_end.frame()) * 100:.0f}%")
+            log.info(f"Progress: {(self.furthest_pos.frame() / video_end.frame()) * 100:.0f}%")
             gen = SearchGenerator(start, video_end).seconds_based_skip(skip_size)
             if (match := self.find_next_match(gen)) is not None:
                 if match.complete():
-                    print(f"DEBUG: complete match\n{match}")
+                    log.info(f"Complete match\n{match}")
                     start = self.process_found_match(match)
                 elif match.driver is not None:
-                    print(f"DEBUG: partial match\n{match}")
+                    log.info(f"Partial match\n{match}")
                     start = match.driver.region.end()
                 elif match.auton is not None:
-                    print(f"DEBUG: partial match\n{match}")
+                    log.info(f"Partial match\n{match}")
                     start = match.auton.region.end()
                 else:
-                    print(f"DEBUG: partial match\n{match}")
+                    log.info(f"Partial match\n{match}")
                     start = self.furthest_pos
             matches_may_remain = self.furthest_pos < (video_end - VidPos(time=shortest_driver))
+        log.info(f"No matches remain")
 
     def find_next_match(self, search_generator: SearchGenerator):
-        print(f"DEBUG: searching for driver phase")
+        log.info(f"Searching for driver phase")
         frame, furthest_pos = utils.skip_search(search_generator)
         self.furthest_pos = furthest_pos
         return MatchResolver(frame) if frame else None

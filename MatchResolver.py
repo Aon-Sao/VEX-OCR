@@ -9,6 +9,8 @@ from VideoPosition import VideoPosition as VidPos
 import DataObjects
 from FrameResolver import FrameResolver
 
+import logging
+log = logging.getLogger(__name__)
 
 class MatchResolver:
     def __init__(self, initial_frame: FrameResolver):
@@ -74,7 +76,7 @@ class MatchResolver:
             return None
 
     def find_phases(self):
-        print(f"DEBUG: resolving driver phase")
+        log.info(f"Resolving driver phase")
         driver_phase = PhaseResolver(self.initial_frame)
         if driver_phase.division.auton_duration > 0:
             start = driver_phase.region.start()
@@ -83,9 +85,9 @@ class MatchResolver:
             accept = lambda x: x.is_auton() and x.full_ocr() and x.match_name  == self.match_name
             # skipping a reject lambda
             gen = SearchGenerator(start, end).seconds_based_skip(skip)
-            print(f"DEBUG: searching for auton phase")
+            log.info(f"Searching for auton phase")
             frame, _ = utils.skip_search(gen, accept)
-            print(f"DEBUG: resolving auton phase")
+            log.info(f"Resolving auton phase")
             auton_phase = PhaseResolver(frame) if frame is not None else None
         else:
             auton_phase = None
