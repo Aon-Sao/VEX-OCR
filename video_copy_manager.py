@@ -2,7 +2,9 @@ import pathlib
 import shutil
 import os
 import threading
-from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
+from concurrent.futures import ThreadPoolExecutor
+from dotenv import load_dotenv
+load_dotenv()
 
 from video_ocr_manager import VideoOCRManager
 

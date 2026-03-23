@@ -1,14 +1,12 @@
 import json
 from time import sleep
 from dotenv import load_dotenv
-
-
 from video_copy_manager import VideoCopyManager
 
-video_copy_manager = VideoCopyManager()
+load_dotenv()
 
 if __name__ == "__main__":
-    load_dotenv()
+    video_copy_manager = VideoCopyManager()
     config = json.load(open("config.json"))
     videos = config["videos"]
 
