@@ -22,12 +22,13 @@ class VideoCopyManager:
 
     def __init__(self, tmp_dir=os.environ["TMP_DIR"], threshold_gb=float(os.environ["THRESHOLD_GB"]),
                  max_queued_files=int(os.environ["MAX_WORKERS"]) * 3, max_workers=int(os.environ["MAX_WORKERS"]),
-                 cleanup_tmp=bool(os.environ["CLEANUP_TMP"] == "TRUE")):
+                 cleanup_tmp=bool(os.environ["CLEANUP_TMP"] == "TRUE"), skip_copy_if_exists=bool(os.environ["SKIP_COPY_IF_EXISTS"] == "TRUE")):
         if self._initialized: return
         self.tmp_root = pathlib.Path(tmp_dir)
         self.ensure_tmp_dir()
         self.threshold_gb = threshold_gb
         self.cleanup_tmp = cleanup_tmp
+        self.skip_copy_if_exists = skip_copy_if_exists
         self.ocr_manager = VideoOCRManager()
         self.transfer_semaphore = threading.Semaphore(max_queued_files)
         self.space_ready_event = threading.Event()
@@ -67,8 +68,9 @@ class VideoCopyManager:
         self.ensure_tmp_dir()
         print(f"[Transfer] Copying {file_name} from {src_path} to {dst_path}")
 
-        if dst_path.exists():
+        if dst_path.exists() and self.skip_copy_if_exists:
             print(f"[Transfer] File already existed {dst_path}")
+
         else:
             while self._get_free_space_gb() < self.threshold_gb:
                 print(f"[Wait] Low space for {file_name}. Waiting...")
