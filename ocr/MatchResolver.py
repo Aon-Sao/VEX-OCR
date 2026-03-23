@@ -101,6 +101,7 @@ class MatchResolver:
             start = driver_phase.region.start()
             end = start - VidPos(time=config.max_phase_distance)
             skip = VidPos(frame=config.auton_skip_size * -1)
+            start += skip # do not OCR the first driver frame again
             accept = lambda x: x.is_auton() and x.full_ocr() and x.match_name  == self.match_name
             # skipping a reject lambda
             gen = SearchGenerator(start, end).seconds_based_skip(skip)
