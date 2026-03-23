@@ -27,11 +27,9 @@ class VideoPosition:
 
     def pretty_time(self):
         total_seconds = int(self.time())
-        total_minutes = int(total_seconds // 60)
-        hours = int(total_minutes // 60)
-        minutes = int(total_minutes % 60)
-        seconds = int(total_seconds % 60)
-        return f"{hours}:{minutes}:{seconds}"
+        hours, remainder = divmod(total_seconds, 3600)
+        minutes, seconds = divmod(remainder, 60)
+        return f"{hours:02}:{minutes:02}:{seconds:02}"
 
     def frame(self):
         return self._frame

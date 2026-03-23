@@ -17,20 +17,21 @@ class SearchGenerator:
     def communicator(self, func):
         msg = ("CONTINUE",)
         while msg[0] == "CONTINUE":
-            func(*msg)
             if not (VidPos(frame=0) <= self.pos <= VidPos(frame=config.frame_count)):
                 break
+            log.info(f"yield {self.pos.frame()}f {self.pos.time():.2f}s {self.pos.pretty_time()}")
             msg = yield self.pos
+            func(*msg)
 
     # Skipping by a "reasonable number of frames"
     # Pass negative values to go in reverse
     def seconds_based_skip(self, skip_size: VidPos):
         if skip_size > VidPos(frame=0):
             log.info(
-                f"Searching {self.start.frame()} --> {self.stop.frame()} {self.start.pretty_time()} --> {self.stop.pretty_time()}")
+                f"Searching {self.start.frame()}f --> {self.stop.frame()}f {self.start.time():.2f}s --> {self.stop.time():.2f}s {self.start.pretty_time()} --> {self.stop.pretty_time()}")
         else:
             log.info(
-                f"Searching {self.stop.frame()} <-- {self.start.frame()} {self.stop.pretty_time()} <-- {self.start.pretty_time()}")
+                f"Searching {self.stop.frame()}f <-- {self.start.frame()}f {self.stop.time():.2f}s <-- {self.start.time():.2f}s {self.stop.pretty_time()} <-- {self.start.pretty_time()}")
 
         def skipper(msg, frame):
             self.pos += skip_size
