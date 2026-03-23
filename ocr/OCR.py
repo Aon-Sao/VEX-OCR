@@ -1,6 +1,6 @@
 from tempfile import TemporaryDirectory
 from thefuzz import fuzz
-from Config import CONFIG as config
+from ocr.Config import CONFIG as config
 
 import cv2
 

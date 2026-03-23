@@ -1,11 +1,9 @@
-import os
 from subprocess import run
 import functools
 import cv2
 
-from FileBrowser import FileBrowser
-from FrameResolver import FrameResolver
-from Config import CONFIG as config
+from ocr.FrameResolver import FrameResolver
+from ocr.Config import CONFIG as config
 
 def notify(dest):
     def wrapper_maker(func):

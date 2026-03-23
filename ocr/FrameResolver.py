@@ -1,6 +1,6 @@
-import utils
-from VideoPosition import VideoPosition as VidPos
-from OCR import Ocr
+import ocr.utils as utils
+from ocr.VideoPosition import VideoPosition as VidPos
+from ocr.OCR import Ocr
 
 class FrameResolver:
     def __init__(self, video_pos: VidPos, cv2_frame, ocr = False):

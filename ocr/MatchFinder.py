@@ -1,9 +1,9 @@
-import utils
-from Config import CONFIG as config
-from DatabaseInteractor import DatabaseInteractor
-from MatchResolver import MatchResolver
-from SearchGenerator import SearchGenerator
-from VideoPosition import VideoPosition as VidPos
+from ocr import utils
+from ocr.Config import CONFIG as config
+from ocr.DatabaseInteractor import DatabaseInteractor
+from ocr.MatchResolver import MatchResolver
+from ocr.SearchGenerator import SearchGenerator
+from ocr.VideoPosition import VideoPosition as VidPos
 
 import logging
 log = logging.getLogger(__name__)

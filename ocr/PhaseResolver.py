@@ -1,8 +1,8 @@
-from VideoPosition import VideoPosition as VidPos
-from VideoRegion import VideoRegion as VidReg
-from FrameResolver import FrameResolver
-from Config import CONFIG as config
-from utils import get_frame
+from ocr.VideoPosition import VideoPosition as VidPos
+from ocr.VideoRegion import VideoRegion as VidReg
+from ocr.FrameResolver import FrameResolver
+from ocr.Config import CONFIG as config
+from ocr.utils import get_frame
 
 
 class PhaseResolver:

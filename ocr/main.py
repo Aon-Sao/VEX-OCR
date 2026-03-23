@@ -2,9 +2,9 @@ import argparse
 import msgspec
 from pathlib import Path
 
-from DataObjects import InputData
-from MatchFinder import MatchFinder
-from Config import CONFIG as config
+from ocr.DataObjects import InputData
+from ocr.MatchFinder import MatchFinder
+from ocr.Config import CONFIG as config
 
 import logging
 log = logging.getLogger(__name__)

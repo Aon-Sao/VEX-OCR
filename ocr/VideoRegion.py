@@ -1,4 +1,4 @@
-from VideoPosition import VideoPosition
+from ocr.VideoPosition import VideoPosition
 
 class VideoRegion:
     def __init__(self, left, right):

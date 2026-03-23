@@ -1,13 +1,13 @@
 import re
 
-import utils
-from Config import CONFIG as config
-from PhaseResolver import PhaseResolver
-from SearchGenerator import SearchGenerator
-from VideoRegion import VideoRegion as VidReg
-from VideoPosition import VideoPosition as VidPos
-import DataObjects
-from FrameResolver import FrameResolver
+import ocr.utils as utils
+import ocr.DataObjects as DataObjects
+from ocr.Config import CONFIG as config
+from ocr.PhaseResolver import PhaseResolver
+from ocr.SearchGenerator import SearchGenerator
+from ocr.VideoRegion import VideoRegion as VidReg
+from ocr.VideoPosition import VideoPosition as VidPos
+from ocr.FrameResolver import FrameResolver
 
 import logging
 log = logging.getLogger(__name__)

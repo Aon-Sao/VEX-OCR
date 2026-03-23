@@ -1,6 +1,6 @@
 import functools
 from decimal import Decimal
-from Config import CONFIG as config
+from ocr.Config import CONFIG as config
 
 
 class VideoPosition:

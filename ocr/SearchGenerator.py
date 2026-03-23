@@ -1,6 +1,6 @@
 from copy import deepcopy
-from VideoPosition import VideoPosition as VidPos
-from Config import CONFIG as config
+from ocr.VideoPosition import VideoPosition as VidPos
+from ocr.Config import CONFIG as config
 
 import logging
 log = logging.getLogger(__name__)

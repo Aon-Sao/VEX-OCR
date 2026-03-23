@@ -1,9 +1,10 @@
 import os
+import cv2
+from pathlib import Path
 from subprocess import run
 
-import cv2
-from DataObjects import InputData
-from FileBrowser import FileBrowser
+from ocr.DataObjects import InputData
+from ocr.FileBrowser import FileBrowser
 
 
 class Config:
@@ -72,7 +73,7 @@ class Config:
         return self.make_skip_size(shortest_driver), self.make_skip_size(shortest_auton)
 
     def set_video_path(self, vid_path):
-        self.video_path = vid_path
+        self.video_path = Path(vid_path)
         self.video_obj = cv2.VideoCapture(self.video_path)
         self.set_fps_and_total_frames()
 
