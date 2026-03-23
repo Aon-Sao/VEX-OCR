@@ -70,7 +70,11 @@ class VideoCopyManager:
             shutil.copy2(src_path, dst_path)
 
         future = self.ocr_manager.process_video(video_data, dst_path)
-        future.add_done_callback(lambda: self._cleanup_after_ocr(dst_path))
+        def make_cleaner(path_to_clean):
+            def clean(*args, **kwargs):
+                self._cleanup_after_ocr(path_to_clean)
+            return clean
+        future.add_done_callback(make_cleaner(dst_path))
 
     def ensure_tmp_dir(self):
         self.tmp_root.mkdir(parents=True, exist_ok=True)
