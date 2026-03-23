@@ -18,7 +18,7 @@ class VideoCopyManager:
                 cls._instance._initialized = False
             return cls._instance
 
-    def __init__(self, tmp_dir=os.environ["TMP_DIR"], threshold_gb=os.environ["THRESHOLD_GB"],
+    def __init__(self, tmp_dir=os.environ["TMP_DIR"], threshold_gb=float(os.environ["THRESHOLD_GB"]),
                  max_queued_files=int(os.environ["MAX_WORKERS"]) * 3, max_workers=int(os.environ["MAX_WORKERS"]),
                  cleanup_tmp=bool(os.environ["CLEANUP_TMP"] == "TRUE")):
         if self._initialized: return
