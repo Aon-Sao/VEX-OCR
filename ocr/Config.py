@@ -12,6 +12,7 @@ class Config:
     # We want to guarantee 2 or 3 hits in a phase
     def make_skip_size(self, phase_duration):
         return int((phase_duration / 3) * self.fps)
+
     ocr_regions = {
         "MATCH_NUM": None,
         "DIVISION_NAME": None,
@@ -48,6 +49,7 @@ class Config:
 
     # Singleton
     instance = None
+
     def __new__(cls):
         if cls.instance is None:
             cls.instance = super().__new__(cls)
@@ -80,15 +82,18 @@ class Config:
         self.set_fps_and_total_frames()
 
     def set_fps_and_total_frames(self):
-        proc = run(["ffprobe", "-v", "error", "-select_streams", "v:0", "-count_packets", "-of",
+        try:
+            args = ["ffprobe", "-v", "error", "-select_streams", "v:0", "-count_packets", "-of",
                     "default=noprint_wrappers=1:nokey=1",
-                    "-show_entries", "stream=avg_frame_rate,nb_read_packets", self.video_path],
-                   capture_output=True)
-        output = proc.stdout.decode()
-        fps_str, total_frames = output.split("\n", maxsplit=1)
-        n, d = fps_str.split(r"/")
-        self.fps = float(n) / float(d)
-        self.frame_count = int(total_frames)
+                    "-show_entries", "stream=avg_frame_rate,nb_read_packets", str(self.video_path.absolute())]
+            proc = run(args=args, capture_output=True)
+            output = proc.stdout.decode()
+            fps_str, total_frames = output.split("\n", maxsplit=1)
+            n, d = fps_str.split(r"/")
+            self.fps = float(n) / float(d)
+            self.frame_count = int(total_frames)
+        except Exception as e:
+            print(e)
 
     def select_ocr_regions(self, time):
         for region in self.ocr_regions.keys():

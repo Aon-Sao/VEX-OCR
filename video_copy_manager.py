@@ -72,6 +72,7 @@ class VideoCopyManager:
         future = self.ocr_manager.process_video(video_data, dst_path)
         def make_cleaner(path_to_clean):
             def clean(*args, **kwargs):
+                args[0].result()
                 self._cleanup_after_ocr(path_to_clean)
             return clean
         future.add_done_callback(make_cleaner(dst_path))

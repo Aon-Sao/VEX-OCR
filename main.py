@@ -14,6 +14,7 @@ if __name__ == "__main__":
 
     for video in videos:
         f = video_copy_manager.add_job(video)
+        f.result()
 
     # while True:
     #     sleep(30)
