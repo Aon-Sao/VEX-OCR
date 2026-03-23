@@ -27,10 +27,10 @@ class SearchGenerator:
     def seconds_based_skip(self, skip_size: VidPos):
         if skip_size > VidPos(frame=0):
             log.info(
-                f"Searching {self.start.frame} --> {self.stop.frame} {self.start.pretty_time()} --> {self.stop.pretty_time()}")
+                f"Searching {self.start.frame()} --> {self.stop.frame()} {self.start.pretty_time()} --> {self.stop.pretty_time()}")
         else:
             log.info(
-                f"Searching {self.stop.frame} <-- {self.start.frame} {self.stop.pretty_time()} <-- {self.start.pretty_time()}")
+                f"Searching {self.stop.frame()} <-- {self.start.frame()} {self.stop.pretty_time()} <-- {self.start.pretty_time()}")
 
         def skipper(msg, frame):
             self.pos += skip_size
