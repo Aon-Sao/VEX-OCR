@@ -60,6 +60,6 @@ class VideoOCRManager:
         }
         json_str = json.dumps(json_dict)
         future = self.executor.submit(run_ocr, json_str, video_data["video_id"])
-        print(f"[VIDEO_OCR_MANAGER] Job submitted {json_str}")
+        print(f"[VIDEO_OCR_MANAGER] Job submitted {video_data['video_id']} json_str: {json_str}")
 
         return future

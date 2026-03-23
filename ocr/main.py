@@ -19,6 +19,7 @@ def parse_arguments():
 
 def run_ocr(input_json_str, vid_id = None):
     try:
+        print(f"run_ocr vid_id: {vid_id}")
         log_path = Path(f"video-{vid_id}.log") if vid_id else Path("ocrTool.log")
         logging.basicConfig(filename=log_path, level=logging.INFO)
         log.info(f"Started. Parsing input.")
@@ -28,5 +29,7 @@ def run_ocr(input_json_str, vid_id = None):
         log.info(f"Searching for matches.")
         MatchFinder().find_all_matches()
         log.info(f"DONE.")
+        return None
     except Exception as e:
+        print(f"Error in run_ocr vid_id: {vid_id}, Error: {e}")
         return e

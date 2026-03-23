@@ -2,8 +2,10 @@ import pathlib
 import shutil
 import os
 import threading
+from time import sleep
 from concurrent.futures import ThreadPoolExecutor
 from dotenv import load_dotenv
+
 load_dotenv()
 
 from video_ocr_manager import VideoOCRManager
@@ -22,7 +24,8 @@ class VideoCopyManager:
 
     def __init__(self, tmp_dir=os.environ["TMP_DIR"], threshold_gb=float(os.environ["THRESHOLD_GB"]),
                  max_queued_files=int(os.environ["MAX_WORKERS"]) * 3, max_workers=int(os.environ["MAX_WORKERS"]),
-                 cleanup_tmp=bool(os.environ["CLEANUP_TMP"] == "TRUE"), skip_copy_if_exists=bool(os.environ["SKIP_COPY_IF_EXISTS"] == "TRUE")):
+                 cleanup_tmp=bool(os.environ["CLEANUP_TMP"] == "TRUE"),
+                 skip_copy_if_exists=bool(os.environ["SKIP_COPY_IF_EXISTS"] == "TRUE")):
         if self._initialized: return
         self.tmp_root = pathlib.Path(tmp_dir)
         self.ensure_tmp_dir()
@@ -79,17 +82,16 @@ class VideoCopyManager:
             self.space_ready_event.clear()
 
             shutil.copy2(src_path, dst_path)
+            sleep(10)
 
         future = self.ocr_manager.process_video(video_data, dst_path)
 
-        def make_cleaner(path_to_clean):
-            def clean(*args, **kwargs):
-                args[0].result()
-                self._cleanup_after_ocr(path_to_clean)
+        def clean(f):
+            f.result()
+            sleep(10)
+            self._cleanup_after_ocr(dst_path)
 
-            return clean
-
-        future.add_done_callback(make_cleaner(dst_path))
+        future.add_done_callback(clean)
 
     def ensure_tmp_dir(self):
         self.tmp_root.mkdir(parents=True, exist_ok=True)
