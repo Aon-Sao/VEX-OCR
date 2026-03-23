@@ -17,10 +17,10 @@ class SearchGenerator:
     def communicator(self, func):
         msg = ("CONTINUE",)
         while msg[0] == "CONTINUE":
+            func(*msg)
             if not (VidPos(frame=0) <= self.pos <= VidPos(frame=config.frame_count)):
                 break
             msg = yield self.pos
-            func(*msg)
 
     # Skipping by a "reasonable number of frames"
     # Pass negative values to go in reverse

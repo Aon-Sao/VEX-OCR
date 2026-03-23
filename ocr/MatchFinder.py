@@ -36,13 +36,13 @@ class MatchFinder:
             if (match := self.find_next_match(gen)) is not None:
                 if match.complete():
                     log.info(f"Complete match\n{match}")
-                    start = self.process_found_match(match) + skip_size
+                    start = self.process_found_match(match)
                 elif match.driver is not None:
                     log.info(f"Partial match\n{match}")
-                    start = match.driver.region.end() + skip_size
+                    start = match.driver.region.end()
                 elif match.auton is not None:
                     log.info(f"Partial match\n{match}")
-                    start = match.auton.region.end() + skip_size
+                    start = match.auton.region.end()
                 else:
                     log.info(f"Partial match\n{match}")
                     start = self.furthest_pos
