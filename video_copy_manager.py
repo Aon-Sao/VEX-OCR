@@ -58,13 +58,16 @@ class VideoCopyManager:
         self.ensure_tmp_dir()
         print(f"[Transfer] Copying {file_name} from {src_path} to {dst_path}")
 
-        while self._get_free_space_gb() < self.threshold_gb:
-            print(f"[Wait] Low space for {file_name}. Waiting...")
-            self.space_ready_event.wait(timeout=30)
-        self.space_ready_event.clear()
+        if dst_path.exists():
+            print(f"[Transfer] File already existed {dst_path}")
+        else:
+            while self._get_free_space_gb() < self.threshold_gb:
+                print(f"[Wait] Low space for {file_name}. Waiting...")
+                self.space_ready_event.wait(timeout=30)
+            self.space_ready_event.clear()
 
-        print(f"[Transfer] Copying {file_name} from network...")
-        shutil.copy2(src_path, dst_path)
+            print(f"[Transfer] Copying {file_name} from network...")
+            shutil.copy2(src_path, dst_path)
 
         self.ocr_manager.process_video(video_data, dst_path, self._cleanup_after_ocr)
 
