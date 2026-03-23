@@ -3,7 +3,9 @@ from ocr.VideoPosition import VideoPosition as VidPos
 from ocr.Config import CONFIG as config
 
 import logging
+
 log = logging.getLogger(__name__)
+
 
 class SearchGenerator:
 
@@ -24,16 +26,22 @@ class SearchGenerator:
     # Pass negative values to go in reverse
     def seconds_based_skip(self, skip_size: VidPos):
         if skip_size > VidPos(frame=0):
-            log.info(f"Searching {self.start.frame} --> {self.stop.frame} {self.start.pretty_time()} --> {self.stop.pretty_time()}")
+            log.info(
+                f"Searching {self.start.frame} --> {self.stop.frame} {self.start.pretty_time()} --> {self.stop.pretty_time()}")
         else:
-            log.info(f"Searching {self.stop.frame} <-- {self.start.frame} {self.stop.pretty_time()} <-- {self.start.pretty_time()}")
+            log.info(
+                f"Searching {self.stop.frame} <-- {self.start.frame} {self.stop.pretty_time()} <-- {self.start.pretty_time()}")
+
         def skipper(msg, frame):
             self.pos += skip_size
+
         return self.communicator(skipper)
 
     # Jump to positions in a list
     def list_based_skip(self, lst):
         _lst = list(deepcopy(lst))
+
         def jumper(msg, frame):
             self.pos = _lst.pop(0)
+
         return self.communicator(jumper)
