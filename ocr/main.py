@@ -28,6 +28,8 @@ def run_ocr(input_json_str, vid_id = None):
         config.configure(input_data)
         log.info(f"Searching for matches.")
         MatchFinder().find_all_matches()
+        log.info(f"Releasing hardware & files")
+        config.release()
         log.info(f"DONE.")
         return None
     except Exception as e:

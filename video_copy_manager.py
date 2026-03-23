@@ -82,13 +82,14 @@ class VideoCopyManager:
             self.space_ready_event.clear()
 
             shutil.copy2(src_path, dst_path)
-            sleep(10)
+            sleep(30)
 
         future = self.ocr_manager.process_video(video_data, dst_path)
 
         def clean(f):
             f.result()
-            sleep(10)
+            print(f"f[CLEANUP] Waiting 60 seconds for video_id {video_data['video_id']} {dst_path}")
+            sleep(60)
             self._cleanup_after_ocr(dst_path)
 
         future.add_done_callback(clean)

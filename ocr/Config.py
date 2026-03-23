@@ -70,6 +70,8 @@ class Config:
 
         for k in self.ocr_regions.keys():
             self.ocr_regions[k] = getattr(input_data.ocr_regions, k)
+    def release(self):
+        self.video_obj.release()
 
     def get_skip_sizes(self):
         shortest_driver = min([dv.driver_duration for dv in self.divisions])
