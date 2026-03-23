@@ -69,7 +69,8 @@ class VideoCopyManager:
             print(f"[Transfer] Copying {file_name} from network...")
             shutil.copy2(src_path, dst_path)
 
-        self.ocr_manager.process_video(video_data, dst_path, self._cleanup_after_ocr)
+        future = self.ocr_manager.process_video(video_data, dst_path)
+        future.add_done_callback(lambda: self._cleanup_after_ocr(dst_path))
 
     def ensure_tmp_dir(self):
         self.tmp_root.mkdir(parents=True, exist_ok=True)
