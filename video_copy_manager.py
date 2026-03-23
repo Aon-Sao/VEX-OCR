@@ -32,10 +32,10 @@ class VideoCopyManager:
         self.threshold_gb = threshold_gb
         self.cleanup_tmp = cleanup_tmp
         self.skip_copy_if_exists = skip_copy_if_exists
-        self.ocr_manager = VideoOCRManager()
+        self.ocr_manager = VideoOCRManager(max_workers)
         self.transfer_semaphore = threading.Semaphore(max_queued_files)
         self.space_ready_event = threading.Event()
-        self.executor = ThreadPoolExecutor(max_workers=max_workers)
+        self.executor = ThreadPoolExecutor(max_workers=1)
         self._initialized = True
 
     def add_job(self, video_data):
