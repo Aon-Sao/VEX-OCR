@@ -58,5 +58,5 @@ class VideoOCRManager:
             }
         }
         json_str = json.dumps(json_dict)
-        future = self.executor.submit(run_ocr, json_str)
+        future = self.executor.submit(run_ocr, json_str, video_data["video_id"])
         return future
