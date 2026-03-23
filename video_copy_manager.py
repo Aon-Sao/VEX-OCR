@@ -43,7 +43,7 @@ class VideoCopyManager:
 
     def _cleanup_after_ocr(self, tmp_path: pathlib.Path):
         try:
-            tmp_path.unlink(missing_ok=True)
+            # tmp_path.unlink(missing_ok=True)
             print(f"[Cleanup] Deleted {tmp_path}")
         finally:
             self.transfer_semaphore.release()
@@ -70,7 +70,7 @@ class VideoCopyManager:
             shutil.copy2(src_path, dst_path)
 
         future = self.ocr_manager.process_video(video_data, dst_path)
-        future.add_done_callback(lambda: self._cleanup_after_ocr(dst_path))
+        future.add_done_callback(lambda f: self._cleanup_after_ocr(dst_path))
 
     def ensure_tmp_dir(self):
         self.tmp_root.mkdir(parents=True, exist_ok=True)
