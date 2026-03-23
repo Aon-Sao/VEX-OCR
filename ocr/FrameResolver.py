@@ -26,8 +26,6 @@ class FrameResolver:
             if None not in list(results):
                 self._full_ocr = True
 
-        # print(f"DEBUG:\n{self}")
-
     def __str__(self):
         return "Frame Object\n" + \
                 f"\tVideo Pos: {self.video_pos}\n" + \

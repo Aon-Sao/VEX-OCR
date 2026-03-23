@@ -5,7 +5,7 @@ def main():
         b"""{
           "scan_start_offset": 0,
           "pg_conn_str": "postgresql://vex_ocr@localhost/VEX?connect_timeout=10",
-          "ssd_vid_path": "./test_files/2025/V5RC/VURC/RE_VURC_24_8911-Technology-2025_05_09-T19_45_00.mp4",
+          "ssd_vid_path": "../test_files/2025/V5RC/VURC/RE_VURC_24_8911-Technology-2025_05_09-T19_45_00.mp4",
           "divisions": [
               {
                 "program_code": "VURC",
@@ -25,7 +25,7 @@ def main():
         b"""{
           "scan_start_offset": 0,
           "pg_conn_str": "postgresql://vex_ocr@localhost/VEX?connect_timeout=10",
-          "ssd_vid_path": "./test_files/2025/V5RC/VURC/RE_VURC_24_8911-Math-2025_05_09-T19_45_00.mp4",
+          "ssd_vid_path": "../test_files/2025/V5RC/VURC/RE_VURC_24_8911-Math-2025_05_09-T19_45_00.mp4",
           "divisions": [
               {
                 "program_code": "VURC",
@@ -45,7 +45,7 @@ def main():
         b"""{
           "scan_start_offset": 0,
           "pg_conn_str": "postgresql://vex_ocr@localhost/VEX?connect_timeout=10",
-          "ssd_vid_path": "./test_files/2025/VIQRC/MS/RE_VIQRC_24_8913-Design-2025_05_12-T19_45_00.mp4",
+          "ssd_vid_path": "../test_files/2025/VIQRC/MS/RE_VIQRC_24_8913-Design-2025_05_12-T19_45_00.mp4",
           "divisions": [
               {
                 "program_code": "VIQRC",
@@ -62,7 +62,7 @@ def main():
           }
         }"""
 
-    run_ocr(input_json_c)
+    run_ocr(input_json_a)
 
 if __name__ == "__main__":
     main()

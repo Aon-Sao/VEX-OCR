@@ -1,5 +1,4 @@
 import argparse
-
 import msgspec
 from pathlib import Path
 
@@ -7,6 +6,8 @@ from DataObjects import InputData
 from MatchFinder import MatchFinder
 from Config import CONFIG as config
 
+import logging
+log = logging.getLogger(__name__)
 
 def parse_arguments():
     parser = argparse.ArgumentParser()
@@ -16,11 +17,13 @@ def parse_arguments():
         jsn = fin.read()
     return jsn
 
-def run_ocr(input_json_str):
+def run_ocr(input_json_str, vid_id = None):
+    log_path = Path(f"video-{vid_id}.log") if vid_id else Path("ocrTool.log")
+    logging.basicConfig(filename=log_path, level=logging.INFO)
+    log.info(f"Started. Parsing input.")
     input_data = msgspec.json.decode(input_json_str, type=InputData)
+    log.info(f"Configuring.")
     config.configure(input_data)
+    log.info(f"Searching for matches.")
     MatchFinder().find_all_matches()
-
-
-if __name__ == "__main__":
-    run_ocr(input_json_str=parse_arguments())
+    log.info(f"DONE.")

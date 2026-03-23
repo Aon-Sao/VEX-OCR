@@ -25,7 +25,6 @@ def notify(dest):
     return wrapper_maker
 
 def get_frame(video_pos, ocr = True):
-    # print(f"DEBUG: getting frame {video_pos.frame()}")
     config.video_obj.set(cv2.CAP_PROP_POS_FRAMES, video_pos.frame())
     _, frame = config.video_obj.read()
     return FrameResolver(video_pos, frame, ocr=ocr)
