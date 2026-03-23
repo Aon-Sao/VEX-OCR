@@ -37,6 +37,7 @@ class VideoCopyManager:
 
     def add_job(self, video_data):
         future = self.executor.submit(self._worker_loop, video_data)
+        print(f"[VIDEO_COPY_MANAGER] Job submitted {video_data['video_id']}]")
         return future
 
     def trigger_check(self):
@@ -77,7 +78,6 @@ class VideoCopyManager:
                 self.space_ready_event.wait(timeout=30)
             self.space_ready_event.clear()
 
-            print(f"[Transfer] Copying {file_name} from network...")
             shutil.copy2(src_path, dst_path)
 
         future = self.ocr_manager.process_video(video_data, dst_path)

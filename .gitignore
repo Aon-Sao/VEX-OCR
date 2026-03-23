@@ -6,4 +6,4 @@ ocrTool.log
 .env
 .venv/
 config.json
-.log
+*.log

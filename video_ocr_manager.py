@@ -6,6 +6,7 @@ import time
 from concurrent.futures import ProcessPoolExecutor
 from ocr import run_ocr
 
+
 class VideoOCRManager:
     _instance = None
     _lock = threading.Lock()
@@ -59,4 +60,6 @@ class VideoOCRManager:
         }
         json_str = json.dumps(json_dict)
         future = self.executor.submit(run_ocr, json_str, video_data["video_id"])
+        print(f"[VIDEO_OCR_MANAGER] Job submitted {json_str}")
+
         return future
