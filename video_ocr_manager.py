@@ -20,7 +20,7 @@ class VideoOCRManager:
 
     def __init__(self, num_workers=4):
         if self._initialized: return
-        self.executor = ProcessPoolExecutor(max_workers=num_workers, max_tasks_per_child=1)
+        self.executor = ProcessPoolExecutor(max_workers=num_workers)
         self._initialized = True
 
     def process_video(self, video_data, tmp_path: pathlib.Path):
