@@ -18,15 +18,16 @@ class VideoCopyManager:
                 cls._instance._initialized = False
             return cls._instance
 
-    def __init__(self, tmp_root="./tmp", threshold_gb=100, max_queued_files=12):
+    def __init__(self, tmp_dir=os.environ["TMP_DIR"], threshold_gb=os.environ["THRESHOLD_GB"],
+                 max_queued_files=int(os.environ["MAX_WORKERS"]) * 3, max_workers=int(os.environ["MAX_WORKERS"])):
         if self._initialized: return
-        self.tmp_root = pathlib.Path(tmp_root)
+        self.tmp_root = pathlib.Path(tmp_dir)
         self.ensure_tmp_dir()
         self.threshold_gb = threshold_gb
         self.ocr_manager = VideoOCRManager()
         self.transfer_semaphore = threading.Semaphore(max_queued_files)
         self.space_ready_event = threading.Event()
-        self.executor = ThreadPoolExecutor(max_workers=1)
+        self.executor = ThreadPoolExecutor(max_workers=max_workers)
         self._initialized = True
 
     def add_job(self, video_data):
@@ -70,11 +71,14 @@ class VideoCopyManager:
             shutil.copy2(src_path, dst_path)
 
         future = self.ocr_manager.process_video(video_data, dst_path)
+
         def make_cleaner(path_to_clean):
             def clean(*args, **kwargs):
                 args[0].result()
                 self._cleanup_after_ocr(path_to_clean)
+
             return clean
+
         future.add_done_callback(make_cleaner(dst_path))
 
     def ensure_tmp_dir(self):
