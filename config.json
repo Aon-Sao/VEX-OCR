@@ -1,0 +1,17 @@
+{
+    "host": "test",
+    "videos": [
+        {
+            "video_id": 157,
+            "divisions": [
+                {
+                    "event_sku": "RE-V5RC-24-8910",
+                    "program_code": "V5RC",
+                    "division_name": "Design"
+                }
+            ],
+            "network_path": "\\\\Mp-server-1\\g\\rr\\muted\\2025\\V5RC\\MS\\RE_V5RC_24_8910-Design-2025_05_09-T19_45_00.mp4",
+            "scan_start_offset": 0
+        }
+    ]
+}

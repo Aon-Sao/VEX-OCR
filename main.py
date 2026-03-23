@@ -1,30 +1,16 @@
-from contextlib import asynccontextmanager
-from fastapi import FastAPI
-from ocr_service import video_service  # Import your singleton instance
+import json
+from time import sleep
 
+from video_copy_manager import VideoCopyManager
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # --- STARTUP ---
-    # 1. This tells the service to spawn its "Manager Thread"
-    # 2. This also initializes your Thread and Process Pools
-    video_service.start_manager()
+video_copy_manager = VideoCopyManager()
 
-    print("Background services are now running.")
+if __name__ == "__main__":
+    config = json.load(open("config.json"))
+    videos = config["videos"]
 
-    yield  # The server stays here while it's "Online" and handling requests
+    for video in videos:
+        f = video_copy_manager.add_job(video)
 
-    # --- SHUTDOWN ---
-    # 1. This stops the manager loop
-    # 2. This tells the pools to stop accepting new work
-    # 3. This waits for active OCR processes to finish before closing
-    video_service.shutdown()
-    print("Background services shut down cleanly.")
-
-
-app = FastAPI(lifespan=lifespan)
-
-
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
+    # while True:
+    #     sleep(30)
