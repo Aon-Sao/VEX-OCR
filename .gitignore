@@ -5,3 +5,4 @@ test_files
 ocrTool.log
 .env
 .venv/
+config.json
