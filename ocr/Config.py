@@ -63,7 +63,7 @@ class Config:
         self.division_names = [i.division_name for i in self.divisions]
         self.expected_strings.extend(self.division_names)
         self.expected_strings.extend({i.program_code for i in self.divisions})
-        self.expected_strings = map(lambda s: s.tolower, self.expected_strings)
+        self.expected_strings = [i.lower() for i in self.expected_strings]
         self.driver_skip_size, self.auton_skip_size = self.get_skip_sizes()
         self.video_id = input_data.video_id
         self.worker_host = input_data.worker_host
