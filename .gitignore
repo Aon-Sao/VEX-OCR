@@ -4,3 +4,4 @@ test_files/
 test_files
 ocrTool.log
 .env
+.venv/
