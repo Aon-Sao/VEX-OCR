@@ -98,7 +98,9 @@ class DatabaseInteractor:
         cur.execute(t"""
             insert into ocr_matches (
                 video_id, worker_host,
-                division_name, match_name,
+                event_sku,
+                division_name,
+                match_name,
                 
                 auton_start_sec, auton_start_frame,
                 auton_stop_sec, auton_stop_frame,
@@ -109,7 +111,10 @@ class DatabaseInteractor:
                 notes)
             values (
                 {config.video_id}, {config.worker_host},
-                {match_info.division_name}, {match_info.match_name},
+                {match_info.event_sku},
+                {match_info.division_name},
+                
+                {match_info.match_name},
                 
                 {match_info.auton_start_sec}, {match_info.auton_start_frame},
                 {match_info.auton_stop_sec}, {match_info.auton_stop_frame},
