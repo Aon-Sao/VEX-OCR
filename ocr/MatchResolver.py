@@ -43,14 +43,33 @@ class MatchResolver:
 
 
     def get_data_obj(self):
-        event_sku, div_id = self.event_sku_and_division_id_lookup()
+        event_sku = self.event_sku_and_division_id_lookup()
         rnd, match_num, instance = self.match_name_parser()
-        return DataObjects.Match(self.region.start().time(), self.region.end().time(), event_sku, div_id, rnd, instance, match_num)
+        return DataObjects.Match(
+            video_id=config.video_id,
+            worker_host=config.worker_host,
+            event_sku=event_sku,
+            division_name=self.division_name,
+            match_name=self.match_name,
+            auton_start_sec=self.auton.region.start().time(),
+            auton_start_frame=self.auton.region.start().frame(),
+            auton_stop_sec=self.auton.region.end().time(),
+            auton_stop_frame=self.auton.region.end().frame(),
+            driver_start_sec=self.driver.region.start().time(),
+            driver_start_frame=self.driver.region.start().frame(),
+            driver_stop_sec=self.driver.region.end().time(),
+            driver_stop_frame=self.driver.region.end().frame(),
+            found_complete_match=self.complete(),
+            notes=None,
+            round=rnd,
+            instance=instance,
+            match_num=match_num
+        )
 
     def event_sku_and_division_id_lookup(self):
         for div in config.divisions:
-            if self.division_name == div.name:
-                return div.event_sku, div.id
+            if self.division_name == div.division_name:
+                return div.event_sku
         return None
 
     def match_name_parser(self):

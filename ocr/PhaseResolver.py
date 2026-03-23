@@ -25,7 +25,7 @@ class PhaseResolver:
 
     def _stop_and_div_type_to_start(self, stop):
         for dv in config.divisions:
-            if dv.name.lower() == self.division_name.lower():
+            if dv.division_name.lower() == self.division_name.lower():
                 self.division = dv
         self.duration = self.division.driver_duration if self.is_driver() else self.division.auton_duration
         return stop - VidPos(time=self.duration)

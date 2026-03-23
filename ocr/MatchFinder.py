@@ -56,5 +56,5 @@ class MatchFinder:
     def process_found_match(match: MatchResolver):
         match_info = match.get_data_obj()
         dbi = DatabaseInteractor(config.pg_conn_str)
-        dbi.update_found_match(match_info)
+        dbi.insert_found_match(match_info)
         return match.driver.region.end()

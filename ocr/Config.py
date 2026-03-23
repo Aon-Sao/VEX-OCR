@@ -58,11 +58,13 @@ class Config:
         self.pg_conn_str = input_data.pg_conn_str
         self.set_video_path(input_data.ssd_vid_path)
         self.divisions = input_data.divisions
-        self.division_names = [i.name for i in self.divisions]
+        self.division_names = [i.division_name for i in self.divisions]
         self.expected_strings.extend(self.division_names)
         self.expected_strings.extend({i.program_code for i in self.divisions})
         self.expected_strings = map(lambda s: s.tolower, self.expected_strings)
         self.driver_skip_size, self.auton_skip_size = self.get_skip_sizes()
+        self.video_id = input_data.video_id
+        self.worker_host = input_data.worker_host
 
         for k in self.ocr_regions.keys():
             self.ocr_regions[k] = getattr(input_data.ocr_regions, k)

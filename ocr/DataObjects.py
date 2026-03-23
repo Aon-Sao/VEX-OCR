@@ -3,10 +3,9 @@ from typing import Optional
 import msgspec
 
 class Division(msgspec.Struct):
-    program_code: str
-    name: str
     event_sku: str
-    id: int
+    program_code: str
+    division_name: str
     driver_duration: Optional[int] = None
     auton_duration: Optional[int] = None
 
@@ -40,18 +39,31 @@ class OCRRegions(msgspec.Struct):
 
 
 class InputData(msgspec.Struct):
-    scan_start_offset: int  # Seconds
     pg_conn_str: str
     ssd_vid_path: str
+    scan_start_offset: int  # Seconds
     divisions: list[Division]
+    video_id: int
+    worker_host: str
     ocr_regions: OCRRegions
     search_algorithm: str = "classic"
 
 class Match(msgspec.Struct):
-    start: int
-    end: int
+    video_id: int
+    worker_host: int
     event_sku: str
-    division_id: int
+    division_name: str
+    match_name: str
+    auton_start_sec: float
+    auton_start_frame: int
+    auton_stop_sec: float
+    auton_stop_frame: int
+    driver_start_sec: float
+    driver_start_frame: int
+    driver_stop_sec: float
+    driver_stop_frame: int
+    found_complete_match: bool
+    notes: str | None
     round: int
     instance: int
     match_num: int

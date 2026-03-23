@@ -49,7 +49,7 @@ class Ocr:
             match_num = "QUAL 5"
         ratios = {i: fuzz.partial_ratio(div_name.lower(), i) for i in config.division_names}
         div_name = longest_best_match(ratios)
-        div_type = [i.program_code for i in config.divisions if i.name == div_name][0]
+        div_type = [i.program_code for i in config.divisions if i.division_name == div_name][0]
         return timer_secs, timer_str, match_num, match_mode, div_name, div_type
 
     @staticmethod
