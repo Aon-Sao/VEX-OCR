@@ -19,11 +19,13 @@ class VideoCopyManager:
             return cls._instance
 
     def __init__(self, tmp_dir=os.environ["TMP_DIR"], threshold_gb=os.environ["THRESHOLD_GB"],
-                 max_queued_files=int(os.environ["MAX_WORKERS"]) * 3, max_workers=int(os.environ["MAX_WORKERS"])):
+                 max_queued_files=int(os.environ["MAX_WORKERS"]) * 3, max_workers=int(os.environ["MAX_WORKERS"]),
+                 cleanup_tmp=bool(os.environ["CLEANUP_TMP"] == "TRUE")):
         if self._initialized: return
         self.tmp_root = pathlib.Path(tmp_dir)
         self.ensure_tmp_dir()
         self.threshold_gb = threshold_gb
+        self.cleanup_tmp = cleanup_tmp
         self.ocr_manager = VideoOCRManager()
         self.transfer_semaphore = threading.Semaphore(max_queued_files)
         self.space_ready_event = threading.Event()
@@ -44,8 +46,12 @@ class VideoCopyManager:
 
     def _cleanup_after_ocr(self, tmp_path: pathlib.Path):
         try:
-            # tmp_path.unlink(missing_ok=True)
-            print(f"[Cleanup] Deleted {tmp_path}")
+            if self.cleanup_tmp:
+                tmp_path.unlink(missing_ok=True)
+                print(f"[Cleanup] Deleted {tmp_path}")
+            else:
+                print(f"[Cleanup] Skipped deleting {tmp_path}")
+
         finally:
             self.transfer_semaphore.release()
             self.trigger_check()
