@@ -63,6 +63,3 @@ class Match(msgspec.Struct):
     driver_stop_frame: int
     found_complete_match: bool
     notes: str | None
-    round: int
-    instance: int
-    match_num: int

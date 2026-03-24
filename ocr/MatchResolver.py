@@ -45,7 +45,6 @@ class MatchResolver:
 
     def get_data_obj(self):
         event_sku = self.event_sku_lookup()
-        rnd, match_num, instance = self.match_name_parser()
         return DataObjects.Match(
             video_id=config.video_id,
             worker_host=config.worker_host,
@@ -62,9 +61,6 @@ class MatchResolver:
             driver_stop_frame=self.driver.region.end().frame() if self.driver else None,
             found_complete_match=self.complete(),
             notes=None,
-            round=rnd,
-            instance=instance,
-            match_num=match_num
         )
 
     def event_sku_lookup(self):
@@ -72,29 +68,6 @@ class MatchResolver:
             if self.division_name == div.division_name:
                 return div.event_sku
         return None
-
-    def match_name_parser(self):
-        exp = re.compile(
-            r"(practice|qualification|qual|teamwork|final|qf|sf|r16|r32|r64|r128)\s?#?\s?(\d+)\s?-?\s?(\d+)?")
-        if mat := re.match(exp, self.match_name.lower()):
-            name_str = mat.group(1)
-            num_str = mat.group(2)
-            instance_str = mat.group(3) if mat.group(3) else "1"
-            match_name_enum_dct = {
-                "practice": 1,
-                "qualifier": 2,
-                "qual": 2,
-                "teamwork": 2,
-                "qf": 3,
-                "sf": 4,
-                "final": 5,
-                "r16": 6,
-                "match": 15
-            }
-            rnd = match_name_enum_dct[name_str]
-            return int(rnd), int(num_str), int(instance_str)
-        else:
-            return None
 
     def find_phases(self):
         log.info(f"Resolving driver phase")
