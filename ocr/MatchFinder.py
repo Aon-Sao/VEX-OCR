@@ -2,7 +2,6 @@ from ocr import utils
 from ocr.Config import CONFIG as config
 from ocr.DatabaseInteractor import DatabaseInteractor
 from ocr.MatchResolver import MatchResolver
-from ocr.SearchGenerator import SearchGenerator
 from ocr.VideoPosition import VideoPosition as VidPos
 
 import logging
@@ -32,8 +31,7 @@ class MatchFinder:
         matches_may_remain = True
         while matches_may_remain:
             log.info(f"Progress: {(self.furthest_pos.frame() / video_end.frame()) * 100:.0f}%")
-            gen = SearchGenerator(start, video_end).seconds_based_skip(skip_size)
-            if (match := self.find_next_match(gen)) is not None:
+            if (match := self.find_next_match(start, video_end, skip_size)) is not None:
                 if match.complete():
                     log.info(f"Complete match\n{match}")
                     start = self.process_found_match(match) + skip_size
@@ -49,9 +47,9 @@ class MatchFinder:
             matches_may_remain = self.furthest_pos < (video_end - VidPos(time=shortest_driver))
         log.info(f"No matches remain")
 
-    def find_next_match(self, search_generator: SearchGenerator):
+    def find_next_match(self, start, end, skip):
         log.info(f"Searching for driver phase")
-        frame, furthest_pos = utils.skip_search(search_generator)
+        frame, furthest_pos = utils.skip_search(start, end, skip)
         self.furthest_pos = furthest_pos
         return MatchResolver(frame) if frame else None
 

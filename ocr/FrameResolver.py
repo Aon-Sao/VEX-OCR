@@ -2,6 +2,10 @@ import ocr.utils as utils
 from ocr.VideoPosition import VideoPosition as VidPos
 from ocr.OCR import Ocr
 
+import logging
+
+log = logging.getLogger(__name__)
+
 class FrameResolver:
     def __init__(self, video_pos: VidPos, cv2_frame, ocr = False):
         self.video_pos = video_pos
@@ -25,6 +29,7 @@ class FrameResolver:
              ) = results
             if None not in list(results):
                 self._full_ocr = True
+            log.info(f"OCR on frame {self.video_pos} got\n{self}")
 
     def __str__(self):
         return "Frame Object\n" + \

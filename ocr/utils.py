@@ -4,6 +4,8 @@ import cv2
 
 from ocr.FrameResolver import FrameResolver
 from ocr.Config import CONFIG as config
+from ocr.VideoPosition import VideoPosition
+
 
 def notify(dest):
     def wrapper_maker(func):
@@ -33,7 +35,31 @@ def display_img(img):
     cv2.waitKey(0)
     cv2.destroyWindow("display")
 
-def skip_search(frame_generator, accept=None, reject=None, ocr=True):
+def skip_search(start, end, skip, accept=None, reject=None, ocr=True):
+
+    # Make sure types are correct
+    start = VideoPosition(start)
+    end = VideoPosition(end)
+    skip = VideoPosition(skip)
+    zero = VideoPosition(frame=0)
+
+    # Handle potentially naive use
+    if (start < end) and (skip > zero):
+        frame_range = range(start.frame(), end.frame(), skip.frame())
+    elif (start > end) and (skip > zero):
+        frame_range = range(end.frame(), start.frame(), skip.frame() * -1)
+    elif (start < end) and (skip < zero):
+        frame_range = range(end.frame(), start.frame(), skip.frame())
+    elif (start > end) and (skip < zero):
+        frame_range = range(start.frame(), end.frame(), skip.frame() * -1)
+    elif start == end:
+        raise ValueError("Start and end position cannot be the same")
+    elif skip == zero:
+        raise ValueError("Skip distance cannot be zero")
+    else:
+        raise Exception("How did we get here...")
+    frame_range = [VideoPosition(frame=i) for i in frame_range]
+
     # By default, we are looking for driver frames
     if accept is None:
         accept = lambda x: x.is_driver() and x.full_ocr()
@@ -41,31 +67,15 @@ def skip_search(frame_generator, accept=None, reject=None, ocr=True):
     if reject is None:
         reject = lambda x: False
 
-    # Do-While
-    def do(pos):
+    furthest_pos = max(start, end)
+
+    for pos in frame_range:
         frame = get_frame(pos, ocr=ocr)
-        # display_img(frame.cv2_frame)
         if accept(frame):
-            return "ACCEPT", frame
+            return frame, furthest_pos
         elif reject(frame):
-            return "REJECT", frame
-        else:
-            return "CONTINUE", frame
-    pos = next(frame_generator)
-    furthest_pos = pos
-    msg = do(pos)
-    while True:
-        try:
-            if msg[0] == "ACCEPT":
-                return msg[1], furthest_pos
-            if msg[0] == "REJECT":
-                break
-            if msg[0] == "CONTINUE":
-                pos = frame_generator.send(msg)
-                furthest_pos = max(furthest_pos, pos)
-                msg = do(pos)
-        except StopIteration:
             return None, furthest_pos
+        furthest_pos = max(furthest_pos, pos)
     return None, furthest_pos
 
 def highlight_region(img, top_left_x, top_left_y, bottom_right_x, bottom_right_y):

@@ -44,7 +44,7 @@ class MatchResolver:
             f"\tDriver: {str(self.driver).replace("\n", "\n\t        ")}"
 
     def get_data_obj(self):
-        event_sku = self.event_sku_and_division_id_lookup()
+        event_sku = self.event_sku_lookup()
         rnd, match_num, instance = self.match_name_parser()
         return DataObjects.Match(
             video_id=config.video_id,
@@ -67,7 +67,7 @@ class MatchResolver:
             match_num=match_num
         )
 
-    def event_sku_and_division_id_lookup(self):
+    def event_sku_lookup(self):
         for div in config.divisions:
             if self.division_name == div.division_name:
                 return div.event_sku
@@ -106,9 +106,8 @@ class MatchResolver:
             start += skip  # do not OCR the first driver frame again
             accept = lambda x: x.is_auton() and x.full_ocr() and x.match_name == self.match_name
             # skipping a reject lambda
-            gen = SearchGenerator(start, end).seconds_based_skip(skip)
             log.info(f"Searching for auton phase")
-            frame, _ = utils.skip_search(gen, accept)
+            frame, _ = utils.skip_search(start, end, skip, accept)
             log.info(f"Resolving auton phase")
             auton_phase = PhaseResolver(frame) if frame is not None else None
         else:
