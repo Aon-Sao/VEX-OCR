@@ -46,7 +46,6 @@ class InputData(msgspec.Struct):
     video_id: int
     worker_host: str
     ocr_regions: OCRRegions
-    search_algorithm: str = "classic"
 
 class Match(msgspec.Struct):
     video_id: int
