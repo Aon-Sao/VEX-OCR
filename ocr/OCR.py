@@ -7,15 +7,6 @@ import cv2
 import pytesseract
 
 class Ocr:
-    # Singleton
-    instance = None
-    def __new__(cls):
-        if cls.instance is None:
-            cls.instance = super().__new__(cls)
-        return cls.instance
-
-    def __init__(self):
-        pytesseract.pytesseract.tesseract_cmd = config.tesseract_path
 
     @staticmethod
     def interpret_results(raw_results):

@@ -3,6 +3,8 @@ import cv2
 from pathlib import Path
 from subprocess import run
 
+import pytesseract
+
 from ocr.DataObjects import InputData
 from ocr.FileBrowser import FileBrowser
 
@@ -21,7 +23,7 @@ class Config:
     }
     # Seconds between auton and driver
     max_phase_distance = 5 * 60
-    tesseract_path = "/usr/sbin/tesseract"
+    pytesseract.pytesseract.tesseract_cmd = "/usr/sbin/tesseract"
     expected_strings = [
         "HS",
         "MS",
