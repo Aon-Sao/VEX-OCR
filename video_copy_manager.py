@@ -22,11 +22,24 @@ class VideoCopyManager:
                 cls._instance._initialized = False
             return cls._instance
 
-    def __init__(self, tmp_dir=os.environ["TMP_DIR"], threshold_gb=float(os.environ["THRESHOLD_GB"]),
-                 max_queued_files=int(os.environ["MAX_WORKERS"]) * 3, max_workers=int(os.environ["MAX_WORKERS"]),
-                 cleanup_tmp=bool(os.environ["CLEANUP_TMP"] == "TRUE"),
-                 skip_copy_if_exists=bool(os.environ["SKIP_COPY_IF_EXISTS"] == "TRUE")):
+    def __init__(self, tmp_dir=None, threshold_gb=None, max_queued_files=None,
+                 max_workers=None, cleanup_tmp=None, skip_copy_if_exists=None):
         if self._initialized: return
+
+        # Defaults
+        if tmp_dir is None:
+            tmp_dir = os.environ["TMP_DIR"]
+        if threshold_gb is None:
+            threshold_gb = float(os.environ["THRESHOLD_GB"])
+        if max_queued_files is None:
+            max_queued_files = int(os.environ["MAX_WORKERS"]) * 3
+        if max_workers is None:
+            max_workers = int(os.environ["MAX_WORKERS"])
+        if cleanup_tmp is None:
+            cleanup_tmp = bool(os.environ["CLEANUP_TMP"] == "TRUE")
+        if skip_copy_if_exists is None:
+            skip_copy_if_exists = bool(os.environ["SKIP_COPY_IF_EXISTS"] == "TRUE")
+
         self.tmp_root = pathlib.Path(tmp_dir)
         self.ensure_tmp_dir()
         self.threshold_gb = threshold_gb
