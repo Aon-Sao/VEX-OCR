@@ -67,7 +67,7 @@ def skip_search(start, end, skip, accept=None, reject=None, ocr=True):
     if reject is None:
         reject = lambda x: False
 
-    furthest_pos = max(start, end)
+    furthest_pos = zero
 
     for pos in frame_range:
         frame = get_frame(pos, ocr=ocr)
