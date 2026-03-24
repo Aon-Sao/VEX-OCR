@@ -10,7 +10,9 @@ from ocr.VideoPosition import VideoPosition as VidPos
 from ocr.FrameResolver import FrameResolver
 
 import logging
+
 log = logging.getLogger(__name__)
+
 
 class MatchResolver:
     def __init__(self, initial_frame: FrameResolver):
@@ -41,7 +43,6 @@ class MatchResolver:
             f"\tAuton: {str(self.auton).replace("\n", "\n\t       ")}\n" + \
             f"\tDriver: {str(self.driver).replace("\n", "\n\t        ")}"
 
-
     def get_data_obj(self):
         event_sku = self.event_sku_and_division_id_lookup()
         rnd, match_num, instance = self.match_name_parser()
@@ -51,14 +52,14 @@ class MatchResolver:
             event_sku=event_sku,
             division_name=self.division_name,
             match_name=self.match_name,
-            auton_start_sec=self.auton.region.start().time(),
-            auton_start_frame=self.auton.region.start().frame(),
-            auton_stop_sec=self.auton.region.end().time(),
-            auton_stop_frame=self.auton.region.end().frame(),
-            driver_start_sec=self.driver.region.start().time(),
-            driver_start_frame=self.driver.region.start().frame(),
-            driver_stop_sec=self.driver.region.end().time(),
-            driver_stop_frame=self.driver.region.end().frame(),
+            auton_start_sec=self.auton.region.start().time() if self.auton else None,
+            auton_start_frame=self.auton.region.start().frame() if self.auton else None,
+            auton_stop_sec=self.auton.region.end().time() if self.auton else None,
+            auton_stop_frame=self.auton.region.end().frame() if self.auton else None,
+            driver_start_sec=self.driver.region.start().time() if self.driver else None,
+            driver_start_frame=self.driver.region.start().frame() if self.driver else None,
+            driver_stop_sec=self.driver.region.end().time() if self.driver else None,
+            driver_stop_frame=self.driver.region.end().frame() if self.driver else None,
             found_complete_match=self.complete(),
             notes=None,
             round=rnd,
@@ -73,7 +74,8 @@ class MatchResolver:
         return None
 
     def match_name_parser(self):
-        exp = re.compile(r"(practice|qualification|qual|teamwork|final|qf|sf|r16|r32|r64|r128)\s?#?\s?(\d+)\s?-?\s?(\d+)?")
+        exp = re.compile(
+            r"(practice|qualification|qual|teamwork|final|qf|sf|r16|r32|r64|r128)\s?#?\s?(\d+)\s?-?\s?(\d+)?")
         if mat := re.match(exp, self.match_name.lower()):
             name_str = mat.group(1)
             num_str = mat.group(2)
@@ -101,8 +103,8 @@ class MatchResolver:
             start = driver_phase.region.start()
             end = start - VidPos(time=config.max_phase_distance)
             skip = VidPos(frame=config.auton_skip_size * -1)
-            start += skip # do not OCR the first driver frame again
-            accept = lambda x: x.is_auton() and x.full_ocr() and x.match_name  == self.match_name
+            start += skip  # do not OCR the first driver frame again
+            accept = lambda x: x.is_auton() and x.full_ocr() and x.match_name == self.match_name
             # skipping a reject lambda
             gen = SearchGenerator(start, end).seconds_based_skip(skip)
             log.info(f"Searching for auton phase")

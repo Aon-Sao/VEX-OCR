@@ -88,7 +88,7 @@ class VideoCopyManager:
 
         def clean(f):
             f.result()
-            print(f"f[CLEANUP] Waiting 60 seconds for video_id {video_data['video_id']} {dst_path}")
+            print(f"[CLEANUP] Waiting 60 seconds for video_id {video_data['video_id']} {dst_path}")
             sleep(60)
             self._cleanup_after_ocr(dst_path)
 
