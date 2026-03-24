@@ -1,6 +1,6 @@
 from ocr import utils
 from ocr.Config import CONFIG as config
-from ocr.DatabaseInteractor import DatabaseInteractor
+from ocr.DatabaseRepository import DatabaseRepository
 from ocr.MatchResolver import MatchResolver
 from ocr.VideoPosition import VideoPosition as VidPos
 
@@ -56,6 +56,6 @@ class MatchFinder:
     @staticmethod
     def process_found_match(match: MatchResolver):
         match_info = match.get_data_obj()
-        dbi = DatabaseInteractor(config.pg_conn_str)
+        dbi = DatabaseRepository(config.pg_conn_str)
         dbi.insert_found_match(match_info)
         return match.driver.region.end()
