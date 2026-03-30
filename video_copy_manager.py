@@ -64,13 +64,15 @@ class VideoCopyManager:
         space = shutil.disk_usage(self.tmp_root).free / (1024 ** 3)
         return space
 
-    def _cleanup_after_ocr(self, tmp_path: pathlib.Path):
+    def _cleanup_after_ocr(self, video_data, dst_path: pathlib.Path, sleep_sec=60):
         try:
             if self.cleanup_tmp:
-                tmp_path.unlink(missing_ok=True)
-                print(f"[Cleanup] Deleted {tmp_path}")
+                print(f"[CLEANUP] Waiting {sleep_sec} seconds for video_id {video_data['video_id']} {dst_path}")
+                sleep(sleep_sec)
+                dst_path.unlink(missing_ok=True)
+                print(f"[Cleanup] Deleted for video_id {video_data['video_id']} {dst_path}")
             else:
-                print(f"[Cleanup] Skipped deleting {tmp_path}")
+                print(f"[Cleanup] Skipped deleting for video_id {video_data['video_id']} {dst_path}")
 
         finally:
             self.transfer_semaphore.release()
@@ -95,16 +97,13 @@ class VideoCopyManager:
             self.space_ready_event.clear()
 
             shutil.copy2(src_path, dst_path)
-            sleep(30)
-
-        future = self.ocr_manager.process_video(video_data, dst_path)
+            sleep(10)
 
         def clean(f):
             f.result()
-            print(f"[CLEANUP] Waiting 60 seconds for video_id {video_data['video_id']} {dst_path}")
-            sleep(60)
-            self._cleanup_after_ocr(dst_path)
-
+            self._cleanup_after_ocr(video_data, dst_path)  
+                  
+        future = self.ocr_manager.process_video(video_data, dst_path)
         future.add_done_callback(clean)
 
     def ensure_tmp_dir(self):
