@@ -34,23 +34,21 @@ class MatchFinder:
             if (match := self.find_next_match(start, video_end, skip_size)) is not None:
                 if match.complete():
                     log.info(f"Complete match\n{match}")
-                    start = self.process_found_match(match) + skip_size
-                elif match.driver is not None:
-                    log.info(f"Partial match\n{match}")
-                    start = match.driver.region.end() + skip_size
-                elif match.auton is not None:
-                    log.info(f"Partial match\n{match}")
-                    start = match.auton.region.end() + skip_size
+                    self.process_found_match(match)
                 else:
                     log.info(f"Partial match\n{match}")
+                if match.driver is not None:
+                    start = match.driver.region.end()
+                else:
                     start = self.furthest_pos
-            matches_may_remain = self.furthest_pos < (video_end - VidPos(time=shortest_driver))
+                start += skip_size
+            matches_may_remain = start < (video_end - VidPos(time=shortest_driver))
         log.info(f"No matches remain")
 
     def find_next_match(self, start, end, skip):
         log.info(f"Searching for driver phase")
         frame, furthest_pos = utils.skip_search(start, end, skip)
-        self.furthest_pos = furthest_pos
+        self.furthest_pos = max(self.furthest_pos, furthest_pos)
         return MatchResolver(frame) if frame else None
 
     @staticmethod

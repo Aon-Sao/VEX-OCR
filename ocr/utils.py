@@ -45,13 +45,13 @@ def skip_search(start, end, skip, accept=None, reject=None, ocr=True):
 
     # Handle potentially naive use
     if (start < end) and (skip > zero):
-        frame_range = range(start.frame(), end.frame(), skip.frame())
+        frame_range = range(start.frame(), end.frame() + 1, skip.frame())
     elif (start > end) and (skip > zero):
-        frame_range = range(end.frame(), start.frame(), skip.frame() * -1)
+        frame_range = range(start.frame(), end.frame() - 1, skip.frame() * -1)
     elif (start < end) and (skip < zero):
-        frame_range = range(end.frame(), start.frame(), skip.frame())
+        frame_range = range(end.frame(), start.frame() - 1, skip.frame())
     elif (start > end) and (skip < zero):
-        frame_range = range(start.frame(), end.frame(), skip.frame() * -1)
+        frame_range = range(end.frame(), start.frame() + 1, skip.frame() * -1)
     elif start == end:
         raise ValueError("Start and end position cannot be the same")
     elif skip == zero:
@@ -67,15 +67,15 @@ def skip_search(start, end, skip, accept=None, reject=None, ocr=True):
     if reject is None:
         reject = lambda x: False
 
-    furthest_pos = zero
+    furthest_pos = min(start, end)
 
     for pos in frame_range:
         frame = get_frame(pos, ocr=ocr)
+        furthest_pos = max(furthest_pos, pos)
         if accept(frame):
             return frame, furthest_pos
         elif reject(frame):
             return None, furthest_pos
-        furthest_pos = max(furthest_pos, pos)
     return None, furthest_pos
 
 def highlight_region(img, top_left_x, top_left_y, bottom_right_x, bottom_right_y):
