@@ -35,7 +35,7 @@ def display_img(img):
     cv2.waitKey(0)
     cv2.destroyWindow("display")
 
-def skip_search(start, end, skip, accept=None, reject=None, ocr=True):
+def skip_search(start, end, skip, accept=None, reject=None, ocr=True, left_to_right=True):
 
     # Make sure types are correct
     start = VideoPosition(start)
@@ -43,21 +43,21 @@ def skip_search(start, end, skip, accept=None, reject=None, ocr=True):
     skip = VideoPosition(skip)
     zero = VideoPosition(frame=0)
 
-    # Handle potentially naive use
-    if (start < end) and (skip > zero):
-        frame_range = range(start.frame(), end.frame() + 1, skip.frame())
-    elif (start > end) and (skip > zero):
-        frame_range = range(start.frame(), end.frame() - 1, skip.frame() * -1)
-    elif (start < end) and (skip < zero):
-        frame_range = range(end.frame(), start.frame() - 1, skip.frame())
-    elif (start > end) and (skip < zero):
-        frame_range = range(end.frame(), start.frame() + 1, skip.frame() * -1)
-    elif start == end:
+    if start == end:
         raise ValueError("Start and end position cannot be the same")
-    elif skip == zero:
+    if skip == zero:
         raise ValueError("Skip distance cannot be zero")
+
+    if left_to_right:
+        st = min(start, end)
+        en = max(start, end) + 1
+        sk = abs(skip)
     else:
-        raise Exception("How did we get here...")
+        st = max(start, end)
+        en = min(start, end) - 1
+        sk = abs(skip) * -1
+
+    frame_range = range(st.frame(), en.frame(), sk.frame())
     frame_range = [VideoPosition(frame=i) for i in frame_range]
 
     # By default, we are looking for driver frames

@@ -80,7 +80,7 @@ class MatchResolver:
             accept = lambda x: x.is_auton() and x.full_ocr() and x.match_name == self.match_name
             # skipping a reject lambda
             log.info(f"Searching for auton phase")
-            frame, _ = utils.skip_search(start, end, skip, accept)
+            frame, _ = utils.skip_search(start, end, skip, accept=accept, left_to_right=False)
             log.info(f"Resolving auton phase")
             auton_phase = PhaseResolver(frame) if frame is not None else None
         else:
