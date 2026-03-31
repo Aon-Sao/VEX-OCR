@@ -1,3 +1,6 @@
+from fractions import Fraction
+
+from ocr.DataObjects import Division
 from ocr.VideoPosition import VideoPosition as VidPos
 from ocr.VideoRegion import VideoRegion as VidReg
 from ocr.FrameResolver import FrameResolver
@@ -6,57 +9,66 @@ from ocr.utils import get_frame
 
 
 class PhaseResolver:
-    def __init__(self, initial_frame: FrameResolver):
-        self.initial_frame = initial_frame
-        self.mode = initial_frame.match_mode
-        self.match_num = initial_frame.match_name
-        self.division_name = initial_frame.division_name
-        self.program_type = initial_frame.program_type
-        self.division = None
-        self.duration = None
-        self.region = self._find_region()
-        self.verified = self._verify_region()
+    def __init__(self, initial_frame: FrameResolver) -> None:
+        self.initial_frame: FrameResolver = initial_frame
+        self.match_mode: str = initial_frame.match_mode
+        self.match_name: str = initial_frame.match_name
+        self.division_name: str = initial_frame.division_name
+        self.program_type: str = initial_frame.program_type
+        self.division: Division | None = None
+        self.duration: VidPos | None = None
+        self.region: VidReg = self.compute_edges()
+        self.quality_rating: Fraction = self.quality_check(config.num_phase_quality_checks)
 
-    def __str__(self):
-        return self.region.__str__()
+    def __str__(self) -> str:
+        return self.region.__str__() + f"\nQuality Rating: {self.quality_rating}"
 
-    def _frame_and_timer_to_stop(self):
+    def compute_left_edge(self) -> VidPos:
         return self.initial_frame.video_pos + VidPos(time=self.initial_frame.timer_seconds)
 
-    def _stop_and_div_type_to_start(self, stop):
+    def compute_right_edge(self, stop: VidPos) -> VidPos:
         for dv in config.divisions:
             if dv.division_name.lower() == self.division_name.lower():
                 self.division = dv
         self.duration = self.division.driver_duration if self.is_driver() else self.division.auton_duration
-        return stop - VidPos(time=self.duration)
+        self.duration = VidPos(time=self.duration)
+        return stop - self.duration
 
-    def _find_region(self):
-        stop = self._frame_and_timer_to_stop()
-        start = self._stop_and_div_type_to_start(stop)
+    def compute_edges(self) -> VidReg:
+        stop = self.compute_left_edge()
+        start = self.compute_right_edge(stop)
         return VidReg(start, stop)
 
-    def is_driver(self):
-        return self.mode == "driver"
+    def is_driver(self) -> bool:
+        return self.match_mode == "driver"
 
-    def is_auton(self):
-        return self.mode == "auton"
+    def is_auton(self) -> bool:
+        return self.match_mode == "auton"
 
-    def _verify_region(self):
-        # Do we need to verify anything besides just the timer?
-        return self._verify_start() and self._verify_stop()
+    def validate_frame(self, frame: FrameResolver) -> bool:
+        def close_enough(observed: int, expected: int):
+            # Now we don't have to worry about floats or off-by-one
+            return expected - 1 <= observed <= expected + 1
 
-    def _verify_start(self):
-        # Check that 5 seconds after the start of this phase,
-        # The timer has 5 seconds missing from it
-        check_pos = self.region.start() + VidPos(time=5)
-        expected_timer_sec = self.duration - 5
-        timer_correct = get_frame(check_pos).timer_seconds == expected_timer_sec
-        return timer_correct
+        seconds_delta = (self.initial_frame.video_pos - frame.video_pos).time()
+        expected_timer_seconds = self.initial_frame.timer_seconds + seconds_delta
 
-    def _verify_stop(self):
-        # Check that 5 seconds before the end of this phase,
-        # The timer has 5 seconds left on it
-        check_pos = self.region.end() - VidPos(time=5)
-        expected_timer_sec = 5
-        timer_correct = get_frame(check_pos).timer_seconds == expected_timer_sec
-        return timer_correct
+        if not frame.full_ocr():
+            return False
+        else:
+            name_correct = frame.match_name == self.match_name
+            mode_correct = frame.match_mode == self.match_mode
+            timer_correct = close_enough(frame.timer_seconds, expected_timer_seconds)
+            return name_correct and mode_correct and timer_correct
+
+    def quality_check(self, num_checks: int) -> Fraction:
+        start = self.region.start().frame()
+        end = self.region.end().frame()
+        skip = (self.duration // num_checks).frame()
+        check_positions = [VidPos(i) for i in range(start, end, skip)]
+        passes = 0
+        for pos in check_positions:
+            frame = get_frame(pos, ocr=True)
+            if self.validate_frame(frame):
+                passes += 1
+        return Fraction(passes, num_checks)

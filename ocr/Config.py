@@ -23,6 +23,8 @@ class Config:
     }
     # Seconds between auton and driver
     max_phase_distance = 5 * 60
+    # How many frames should be quality checked within a phase
+    num_phase_quality_checks = 5
     pytesseract.pytesseract.tesseract_cmd = "/usr/sbin/tesseract"
     expected_strings = [
         "HS",
