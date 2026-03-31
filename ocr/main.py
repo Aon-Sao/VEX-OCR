@@ -53,10 +53,11 @@ def run_ocr(input_json_str, vid_id=None):
         input_data = msgspec.json.decode(input_json_str, type=InputData)
         log.info("Configuring.")
         config.configure(input_data)
+        config.open_video()
         log.info("Searching for matches.")
         MatchFinder().find_all_matches()
         log.info("Releasing hardware & files")
-        config.release()
+        config.release_video()
         log.info("DONE.")
         return None
     except Exception as e:
