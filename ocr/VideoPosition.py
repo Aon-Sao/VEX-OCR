@@ -1,8 +1,11 @@
 import functools
 from decimal import Decimal
+from numbers import Number
+
 from ocr.Config import CONFIG as config
 
 
+@functools.total_ordering
 class VideoPosition:
     def __init__(self, frame: int = None, time: float | int = None):
         if ((frame is None) and (time is None)) or ((frame is not None) and (time is not None)):
@@ -18,54 +21,79 @@ class VideoPosition:
         else:
             raise TypeError("time/frame must be one of: [float, int, Decimal, VideoPosition]")
 
-
-    def __str__(self):
-        return str({"time": self.time(), "frame": self.frame()})
-
-    def time(self):
-        return self._frame / config.fps
-
     def pretty_time(self):
         total_seconds = int(self.time())
         hours, remainder = divmod(total_seconds, 3600)
         minutes, seconds = divmod(remainder, 60)
         return f"{hours:02}:{minutes:02}:{seconds:02}"
 
+    def time(self):
+        return self._frame / config.fps
+
     def frame(self):
         return self._frame
 
-    @staticmethod
-    def do_if_compatible(func):
-        @functools.wraps(func)
-        def wrapper(self, other):
-            if isinstance(other, VideoPosition):
-                return func(self, other)
-            else:
-                raise TypeError(f"Incompatible types: {type(self)} and {type(other)}")
-        return wrapper
+    def __str__(self):
+        return str({"time": self.time(), "frame": self.frame()})
 
-    @do_if_compatible
-    def __add__(self, other):
-        return VideoPosition(frame=self.frame() + other.frame())
+    def __hash__(self):
+        return self.frame().__hash__()
 
-    @do_if_compatible
-    def __sub__(self, other):
-        return VideoPosition(frame=self.frame() - other.frame())
+    def __abs__(self):
+        return VideoPosition(frame=self.frame().__abs__())
 
-    @do_if_compatible
-    def __lt__(self, other):
-        return self.frame() < other.frame()
+    def __lt__(self, other) -> VideoPosition:
+        if isinstance(other, Number):
+            return self.frame() < other
+        elif isinstance(other, VideoPosition):
+            return self.frame() < other.frame()
+        else:
+            raise TypeError(f"Incompatible types: {type(self)} and {type(other)}")
 
-    @do_if_compatible
-    def __le__(self, other):
-        return self.frame() <= other.frame()
+    def __eq__(self, other) -> VideoPosition:
+        if isinstance(other, Number):
+            return self.frame() == other
+        elif isinstance(other, VideoPosition):
+            return self.frame() == other.frame()
+        else:
+            raise TypeError(f"Incompatible types: {type(self)} and {type(other)}")
 
-    @do_if_compatible
-    def __eq__(self, other):
-        return self.frame() == other.frame()
+    def __add__(self, other) -> VideoPosition:
+        if isinstance(other, Number):
+            return VideoPosition(frame=self.frame() + other)
+        elif isinstance(other, VideoPosition):
+            return VideoPosition(frame=self.frame() + other.frame())
+        else:
+            raise TypeError(f"Incompatible types: {type(self)} and {type(other)}")
 
-    def __mul__(self, other):
-        return VideoPosition(frame=self.frame() * other)
+    def __sub__(self, other) -> VideoPosition:
+        if isinstance(other, Number):
+            return VideoPosition(frame=self.frame() - other)
+        elif isinstance(other, VideoPosition):
+            return VideoPosition(frame=self.frame() - other.frame())
+        else:
+            raise TypeError(f"Incompatible types: {type(self)} and {type(other)}")
 
-    def __truediv__(self, other):
-        return VideoPosition(frame=self.frame() / other)
+    def __mul__(self, other) -> VideoPosition:
+        if isinstance(other, Number):
+            return VideoPosition(frame=self.frame() * other)
+        elif isinstance(other, VideoPosition):
+            return VideoPosition(frame=self.frame() * other.frame())
+        else:
+            raise TypeError(f"Incompatible types: {type(self)} and {type(other)}")
+
+    def __truediv__(self, other) -> VideoPosition:
+        if isinstance(other, Number):
+            return VideoPosition(frame=self.frame() / other)
+        elif isinstance(other, VideoPosition):
+            return VideoPosition(frame=self.frame() / other.frame())
+        else:
+            raise TypeError(f"Incompatible types: {type(self)} and {type(other)}")
+
+    def __floordiv__(self, other) -> VideoPosition:
+        if isinstance(other, Number):
+            return VideoPosition(frame=self.frame() // other)
+        elif isinstance(other, VideoPosition):
+            return VideoPosition(frame=self.frame() // other.frame())
+        else:
+            raise TypeError(f"Incompatible types: {type(self)} and {type(other)}")
