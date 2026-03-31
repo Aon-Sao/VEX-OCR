@@ -72,6 +72,7 @@ class Config:
         self.divisions = input_data.divisions
         self.video_id = input_data.video_id
         self.video_path = Path(input_data.ssd_vid_path)
+        self.set_fps_and_total_frames()
         self.worker_host = input_data.worker_host
         self.division_names = [i.division_name for i in self.divisions]
         self.driver_skip_size, self.auton_skip_size = self.set_skip_sizes()
@@ -81,8 +82,6 @@ class Config:
 
         for k in self.ocr_regions.keys():
             self.ocr_regions[k] = getattr(input_data.ocr_regions, k)
-
-        self.set_fps_and_total_frames()
 
     def open_video(self):
         self.video_obj = cv2.VideoCapture(self.video_path)
