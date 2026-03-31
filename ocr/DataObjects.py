@@ -62,4 +62,8 @@ class Match(msgspec.Struct):
     driver_stop_sec: float
     driver_stop_frame: int
     found_complete_match: bool
+    auton_quality_passes: int
+    auton_quality_checks: int
+    driver_quality_passes: int
+    driver_quality_checks: int
     notes: str | None

@@ -22,6 +22,11 @@ class DatabaseRepository:
                     driver_start_sec, driver_start_frame,
                     driver_stop_sec, driver_stop_frame,
                     
+                    auton_quality_passes,
+                    auton_quality_checks,
+                    driver_quality_passes,
+                    driver_quality_checks,
+                    
                     found_complete_match,
                     notes)
                 values (
@@ -35,6 +40,12 @@ class DatabaseRepository:
                     {match_info.auton_stop_sec}, {match_info.auton_stop_frame},
                     {match_info.driver_start_sec}, {match_info.driver_start_frame},
                     {match_info.driver_stop_sec}, {match_info.driver_stop_frame},
+                    
+                    {match_info.auton_quality_passes},
+                    {match_info.auton_quality_checks},
+                    {match_info.driver_quality_passes},
+                    {match_info.driver_quality_checks},
+
                     
                     {match_info.found_complete_match},
                     {match_info.notes}
