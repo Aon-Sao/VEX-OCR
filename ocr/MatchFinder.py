@@ -32,11 +32,9 @@ class MatchFinder:
         while matches_may_remain:
             log.info(f"Progress: {(self.furthest_pos.frame() / video_end.frame()) * 100:.0f}%")
             if (match := self.find_next_match(start, video_end, skip_size)) is not None:
-                if match.complete():
-                    log.info(f"Complete match\n{match}")
-                    self.process_found_match(match)
-                else:
-                    log.info(f"Partial match\n{match}")
+                log.info(str(match))
+                self.process_found_match(match)
+
                 if match.driver is not None:
                     start = match.driver.region.end()
                 else:
