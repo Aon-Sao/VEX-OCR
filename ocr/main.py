@@ -59,7 +59,7 @@ def run_ocr(input_json_str, vid_id=None):
         log.info("Releasing hardware & files")
         config.release_video()
         log.info("DONE.")
-        return None
+        return True
     except Exception as e:
         log.exception(f"Error in vid_id: {vid_id}, Error: {e}")
         return e
