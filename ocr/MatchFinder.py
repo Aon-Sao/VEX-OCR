@@ -39,7 +39,9 @@ class MatchFinder:
                     start = match.driver.region.end()
                 else:
                     start = self.furthest_pos
-                start += skip_size
+            else:
+                start = self.furthest_pos
+            start += skip_size
             matches_may_remain = start < (video_end - VidPos(time=shortest_driver))
         log.info(f"No matches remain")
 
