@@ -87,7 +87,7 @@ class Config:
         self.video_obj = cv2.VideoCapture(self.video_path)
 
     def release_video(self):
-        self.video_obj.release_video()
+        self.video_obj.release()
 
     def set_skip_sizes(self):
         # Affects how big a skip we'll take
