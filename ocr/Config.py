@@ -102,7 +102,7 @@ class Config:
         args = ["ffprobe", "-v", "error", "-select_streams", "v:0", "-count_packets", "-of",
                 "default=noprint_wrappers=1:nokey=1",
                 "-show_entries", "stream=avg_frame_rate,nb_read_packets", str(self.video_path.absolute())]
-        proc = run(args=args, capture_output=True)
+        proc = run(args=args, capture_output=True, check=True)
         output = proc.stdout.decode()
         fps_str, total_frames = output.split("\n", maxsplit=1)
         n, d = fps_str.split(r"/")
