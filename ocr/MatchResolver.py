@@ -60,6 +60,10 @@ class MatchResolver:
             driver_stop_sec=self.driver.region.end().time() if self.driver else None,
             driver_stop_frame=self.driver.region.end().frame() if self.driver else None,
             found_complete_match=self.complete(),
+            auton_quality_passes=self.auton.quality_rating.numerator,
+            auton_quality_checks=self.auton.quality_rating.denominator,
+            driver_quality_passes=self.driver.quality_rating.numerator,
+            driver_quality_checks=self.driver.quality_rating.denominator,
             notes=None,
         )
 
