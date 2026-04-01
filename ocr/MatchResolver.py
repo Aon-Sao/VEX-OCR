@@ -1,15 +1,12 @@
-import re
-
-import ocr.utils as utils
-import ocr.DataObjects as DataObjects
-from ocr.Config import CONFIG as config
-from ocr.PhaseResolver import PhaseResolver
-from ocr.SearchGenerator import SearchGenerator
-from ocr.VideoRegion import VideoRegion as VidReg
-from ocr.VideoPosition import VideoPosition as VidPos
-from ocr.FrameResolver import FrameResolver
-
 import logging
+
+import ocr.DataObjects as DataObjects
+import ocr.utils as utils
+from ocr.Config import CONFIG as config
+from ocr.FrameResolver import FrameResolver
+from ocr.PhaseResolver import PhaseResolver
+from ocr.VideoPosition import VideoPosition as VidPos
+from ocr.VideoRegion import VideoRegion as VidReg
 
 log = logging.getLogger(__name__)
 
@@ -60,10 +57,10 @@ class MatchResolver:
             driver_stop_sec=self.driver.region.end().time() if self.driver else None,
             driver_stop_frame=self.driver.region.end().frame() if self.driver else None,
             found_complete_match=self.complete(),
-            auton_quality_passes=self.auton.quality_rating.numerator,
-            auton_quality_checks=self.auton.quality_rating.denominator,
-            driver_quality_passes=self.driver.quality_rating.numerator,
-            driver_quality_checks=self.driver.quality_rating.denominator,
+            auton_quality_passes=self.auton.quality_rating.numerator if self.auton else None,
+            auton_quality_checks=self.auton.quality_rating.denominator if self.auton else None,
+            driver_quality_passes=self.driver.quality_rating.numerator if self.driver else None,
+            driver_quality_checks=self.driver.quality_rating.denominator if self.driver else None,
             notes=None,
         )
 
