@@ -18,7 +18,7 @@ class PhaseResolver:
         self.division: Division | None = None
         self.duration: VidPos | None = None
         self.region: VidReg = self.compute_edges()
-        self.quality_rating: Fraction = self.quality_check(config.num_phase_quality_checks)
+        self.quality_rating: tuple[int, int] = self.quality_check(config.num_phase_quality_checks)
 
     def __str__(self) -> str:
         return self.region.__str__() + f"\nQuality Rating: {self.quality_rating}"
@@ -61,7 +61,7 @@ class PhaseResolver:
             timer_correct = close_enough(frame.timer_seconds, expected_timer_seconds)
             return name_correct and mode_correct and timer_correct
 
-    def quality_check(self, num_checks: int) -> Fraction:
+    def quality_check(self, num_checks: int) -> tuple[int, int]:
         start = self.region.start().frame()
         end = self.region.end().frame()
         skip = (self.duration // num_checks).frame()
@@ -71,4 +71,4 @@ class PhaseResolver:
             frame = get_frame(pos, ocr=True)
             if self.validate_frame(frame):
                 passes += 1
-        return Fraction(passes, num_checks)
+        return passes, num_checks
