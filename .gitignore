@@ -7,3 +7,4 @@ ocrTool.log
 .venv/
 config.json
 *.log
+tmp/
