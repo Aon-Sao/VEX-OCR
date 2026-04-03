@@ -1,5 +1,6 @@
 import psycopg
 
+
 class DatabaseRepository:
     def __init__(self, pg_conn_str):
         self.pg_conn_str = pg_conn_str
@@ -50,8 +51,7 @@ class DatabaseRepository:
                     {match_info.found_complete_match},
                     {match_info.notes}
                 );
-                """
-            )
+                """)
             conn.commit()
             conn.close()
         return None

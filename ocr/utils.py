@@ -5,12 +5,15 @@ from ocr.FrameResolver import FrameResolver
 from ocr.VideoPosition import VideoPosition
 
 
-def get_frame(video_pos, ocr = True):
+def get_frame(video_pos, ocr=True):
     config.video_obj.set(cv2.CAP_PROP_POS_FRAMES, video_pos.frame())
     _, frame = config.video_obj.read()
     return FrameResolver(video_pos, frame, ocr=ocr)
 
-def skip_search(start, end, skip, accept=None, reject=None, ocr=True, left_to_right=True):
+
+def skip_search(
+    start, end, skip, accept=None, reject=None, ocr=True, left_to_right=True
+):
 
     # Make sure types are correct
     start = VideoPosition(start)

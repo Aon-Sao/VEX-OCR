@@ -24,9 +24,17 @@ class VideoCopyManager:
                 cls._instance._initialized = False
             return cls._instance
 
-    def __init__(self, tmp_dir=None, threshold_gb=None, max_queued_files=None,
-                 max_workers=None, cleanup_tmp=None, skip_copy_if_exists=None):
-        if self._initialized: return
+    def __init__(
+        self,
+        tmp_dir=None,
+        threshold_gb=None,
+        max_queued_files=None,
+        max_workers=None,
+        cleanup_tmp=None,
+        skip_copy_if_exists=None,
+    ):
+        if self._initialized:
+            return
 
         # Defaults
         if tmp_dir is None:
@@ -63,18 +71,26 @@ class VideoCopyManager:
 
     def _get_free_space_gb(self):
         self.ensure_tmp_dir()
-        space = shutil.disk_usage(self.tmp_root).free / (1024 ** 3)
+        space = shutil.disk_usage(self.tmp_root).free / (1024**3)
         return space
 
-    def _cleanup_after_ocr(self, video_data: JobSpec, dst_path: pathlib.Path, sleep_sec=60):
+    def _cleanup_after_ocr(
+        self, video_data: JobSpec, dst_path: pathlib.Path, sleep_sec=60
+    ):
         try:
             if self.cleanup_tmp:
-                print(f"[CLEANUP] Waiting {sleep_sec} seconds for video_id {video_data.video_id} {dst_path}")
+                print(
+                    f"[CLEANUP] Waiting {sleep_sec} seconds for video_id {video_data.video_id} {dst_path}"
+                )
                 sleep(sleep_sec)
                 dst_path.unlink(missing_ok=True)
-                print(f"[Cleanup] Deleted for video_id {video_data.video_id} {dst_path}")
+                print(
+                    f"[Cleanup] Deleted for video_id {video_data.video_id} {dst_path}"
+                )
             else:
-                print(f"[Cleanup] Skipped deleting for video_id {video_data.video_id} {dst_path}")
+                print(
+                    f"[Cleanup] Skipped deleting for video_id {video_data.video_id} {dst_path}"
+                )
 
         finally:
             self.transfer_semaphore.release()
@@ -103,8 +119,8 @@ class VideoCopyManager:
 
         def clean(f):
             f.result()
-            self._cleanup_after_ocr(video_data, dst_path)  
-                  
+            self._cleanup_after_ocr(video_data, dst_path)
+
         future = self.ocr_manager.process_video(video_data, dst_path)
         future.add_done_callback(clean)
 

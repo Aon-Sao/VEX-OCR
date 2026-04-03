@@ -24,14 +24,18 @@ class MatchFinder:
 
     def find_all_matches(self):
         video_end = VidPos(frame=config.frame_count)
-        shortest_driver = min([dv.driver_duration for dv in config.divisions if dv.driver_duration > 0])
+        shortest_driver = min(
+            [dv.driver_duration for dv in config.divisions if dv.driver_duration > 0]
+        )
 
         start = self.furthest_pos
         skip_size = VidPos(frame=config.driver_skip_size)
 
         matches_may_remain = True
         while matches_may_remain:
-            log.info(f"Progress: {(self.furthest_pos.frame() / video_end.frame()) * 100:.0f}%")
+            log.info(
+                f"Progress: {(self.furthest_pos.frame() / video_end.frame()) * 100:.0f}%"
+            )
             if (match := self.find_next_match(start, video_end, skip_size)) is not None:
                 log.info(str(match))
                 self.process_found_match(match)
@@ -44,13 +48,17 @@ class MatchFinder:
                 start = self.furthest_pos
             start += skip_size
             matches_may_remain = start < (video_end - VidPos(time=shortest_driver))
-            self.db.update_telemetry({
-                "furthest_frame": self.furthest_pos.frame(),
-                "total_frames": video_end.frame(),
-                "furthest_time": self.furthest_pos.pretty_time(),
-                "total_time": video_end.pretty_time(),
-                "latest_match_name": match.match_name if match is not None else None
-            })
+            self.db.update_telemetry(
+                {
+                    "furthest_frame": self.furthest_pos.frame(),
+                    "total_frames": video_end.frame(),
+                    "furthest_time": self.furthest_pos.pretty_time(),
+                    "total_time": video_end.pretty_time(),
+                    "latest_match_name": (
+                        match.match_name if match is not None else None
+                    ),
+                }
+            )
         log.info(f"No matches remain")
 
     def find_next_match(self, start, end, skip):

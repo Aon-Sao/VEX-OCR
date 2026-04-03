@@ -7,6 +7,7 @@ from typing import Literal
 
 import psutil
 
+
 class Units(IntEnum):
     # Technically, these are Kibibyte, Mebibyte, etc.
     BIT = 1
@@ -16,6 +17,7 @@ class Units(IntEnum):
     MB = 8388608
     GB = 8589934592
     TB = 8796093022208
+
 
 class DiskMonitor:
     def __init__(self, disk_location: Path):
@@ -37,6 +39,7 @@ class DiskMonitor:
 
     def free(self, unit: Units = Units.BYTE):
         return round(self._free / unit.value, 2)
+
 
 class CPUMonitor:
     def __init__(self):
@@ -76,6 +79,7 @@ class CPUMonitor:
                 sleep(5 - delta)
             self._avg_is_ready = True
         return self.load_averages
+
 
 class RAMMonitor:
     def __init__(self):

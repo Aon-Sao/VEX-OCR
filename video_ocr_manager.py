@@ -21,8 +21,11 @@ class VideoOCRManager:
             return cls._instance
 
     def __init__(self, num_workers=4):
-        if self._initialized: return
-        self.executor = ProcessPoolExecutor(max_workers=num_workers,max_tasks_per_child=1)
+        if self._initialized:
+            return
+        self.executor = ProcessPoolExecutor(
+            max_workers=num_workers, max_tasks_per_child=1
+        )
         self._initialized = True
 
     def process_video(self, video_data: JobSpec, tmp_path: pathlib.Path):
@@ -34,34 +37,16 @@ class VideoOCRManager:
             "video_id": video_data.video_id,
             "worker_host": os.environ["WORKER_HOST"],
             "ocr_regions": {
-                "MATCH_NUM": [
-                    0,
-                    0,
-                    420,
-                    56
-                ],
-                "DIVISION_NAME": [
-                    423,
-                    0,
-                    1499,
-                    53
-                ],
-                "MATCH_TIMER": [
-                    1654,
-                    944,
-                    1920,
-                    1043
-                ],
-                "MATCH_MODE": [
-                    1654,
-                    1044,
-                    1920,
-                    1080
-                ]
-            }
+                "MATCH_NUM": [0, 0, 420, 56],
+                "DIVISION_NAME": [423, 0, 1499, 53],
+                "MATCH_TIMER": [1654, 944, 1920, 1043],
+                "MATCH_MODE": [1654, 1044, 1920, 1080],
+            },
         }
         json_str = json.dumps(json_dict)
         future = self.executor.submit(run_ocr, json_str, video_data.video_id)
-        print(f"[VIDEO_OCR_MANAGER] Job submitted {video_data.video_id} json_str: {json_str}")
+        print(
+            f"[VIDEO_OCR_MANAGER] Job submitted {video_data.video_id} json_str: {json_str}"
+        )
 
         return future

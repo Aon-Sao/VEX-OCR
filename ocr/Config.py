@@ -33,7 +33,7 @@ class Config:
             "MATCH_NUM": None,
             "DIVISION_NAME": None,
             "MATCH_TIMER": None,
-            "MATCH_MODE": None
+            "MATCH_MODE": None,
         }
 
         # Seconds between auton and driver
@@ -71,11 +71,19 @@ class Config:
         return driver_skip_size, auton_skip_size
 
     def set_fps_and_total_frames(self):
-        args = ["ffprobe", "-v", "er"
-                                 "ror", "-select_streams", "v:0", "-count_packets", "-of",
-                "default=noprint_wrappers=1:nokey=1",
-                "-show_entries", "stream=avg_frame_rate,nb_read_packets",
-                str(Path(self.input_data.ssd_vid_path).absolute())]
+        args = [
+            "ffprobe",
+            "-v",
+            "er" "ror",
+            "-select_streams",
+            "v:0",
+            "-count_packets",
+            "-of",
+            "default=noprint_wrappers=1:nokey=1",
+            "-show_entries",
+            "stream=avg_frame_rate,nb_read_packets",
+            str(Path(self.input_data.ssd_vid_path).absolute()),
+        ]
         try:
             proc = run(args=args, capture_output=True, check=True)
         except CalledProcessError as e:

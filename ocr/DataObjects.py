@@ -2,6 +2,7 @@ from typing import Optional
 
 import msgspec
 
+
 class Division(msgspec.Struct):
     event_sku: str
     program_code: str
@@ -26,6 +27,7 @@ class Division(msgspec.Struct):
     def has_auton(self):
         return self.auton_duration > 0
 
+
 class OCRRegions(msgspec.Struct):
     MATCH_NUM: list[int]
     DIVISION_NAME: list[int]
@@ -46,6 +48,7 @@ class InputData(msgspec.Struct):
     video_id: int
     worker_host: str
     ocr_regions: OCRRegions
+
 
 class Match(msgspec.Struct):
     video_id: int

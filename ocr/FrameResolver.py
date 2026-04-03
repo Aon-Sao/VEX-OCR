@@ -20,25 +20,28 @@ class FrameResolver:
 
         if ocr:
             results = Ocr.analyze_frame(self.cv2_frame, self.video_pos)
-            (self.timer_seconds,
-             self.timer_string,
-             self.match_name,
-             self.match_mode,
-             self.division_name,
-             self.program_type
-             ) = results
+            (
+                self.timer_seconds,
+                self.timer_string,
+                self.match_name,
+                self.match_mode,
+                self.division_name,
+                self.program_type,
+            ) = results
             if None not in list(results):
                 self._full_ocr = True
             log.info(f"OCR on frame {self.video_pos} got\n{self}")
 
     def __str__(self):
-        return "Frame Object\n" + \
-            f"\tVideo Pos: {self.video_pos}\n" + \
-            f"\tTimer Sec: {self.timer_seconds}\n" + \
-            f"\tTimer Str: {self.timer_string}\n" + \
-            f"\tMatch Num: {self.match_name}\n" + \
-            f"\tMatch Mode: {self.match_mode}\n" + \
-            f"\tDiv Name: {self.division_name}"
+        return (
+            "Frame Object\n"
+            + f"\tVideo Pos: {self.video_pos}\n"
+            + f"\tTimer Sec: {self.timer_seconds}\n"
+            + f"\tTimer Str: {self.timer_string}\n"
+            + f"\tMatch Num: {self.match_name}\n"
+            + f"\tMatch Mode: {self.match_mode}\n"
+            + f"\tDiv Name: {self.division_name}"
+        )
 
     def is_driver(self):
         return self.match_mode == "driver"
@@ -51,4 +54,3 @@ class FrameResolver:
 
     def full_ocr(self):
         return self._full_ocr
-
