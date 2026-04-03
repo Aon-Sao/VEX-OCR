@@ -1,14 +1,12 @@
-import argparse
+import logging
 import sys
-
-import msgspec
 from pathlib import Path
 
+import msgspec
+
+from ocr.Config import CONFIG as config
 from ocr.DataObjects import InputData
 from ocr.MatchFinder import MatchFinder
-from ocr.Config import CONFIG as config
-
-import logging
 
 log = logging.getLogger(__name__)
 
