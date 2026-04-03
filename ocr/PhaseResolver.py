@@ -1,10 +1,8 @@
-from fractions import Fraction
-
+from ocr.Config import CONFIG as config
 from ocr.DataObjects import Division
+from ocr.FrameResolver import FrameResolver
 from ocr.VideoPosition import VideoPosition as VidPos
 from ocr.VideoRegion import VideoRegion as VidReg
-from ocr.FrameResolver import FrameResolver
-from ocr.Config import CONFIG as config
 from ocr.utils import get_frame
 
 
@@ -14,7 +12,6 @@ class PhaseResolver:
         self.match_mode: str = initial_frame.match_mode
         self.match_name: str = initial_frame.match_name
         self.division_name: str = initial_frame.division_name
-        self.program_type: str = initial_frame.program_type
         self.division: Division | None = None
         self.duration: VidPos | None = None
         self.region: VidReg = self.compute_edges()
