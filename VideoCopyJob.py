@@ -43,7 +43,7 @@ class VideoCopyJob:
         log.debug(f"Obtaining disk_space condition lock for vid_id: {self.vid_id}")
         with self.disk_space_cond:
             log.debug(f"Waiting for disk_space condition predicate for vid_id: {self.vid_id}")
-            self.disk_space_cond.wait_for(lambda : self.disk_has_room(self.src_file_size, self.dst_dir, self.disk_buffer_size))
+            self.disk_space_cond.wait_for(lambda : self.disk_has_room(self.src_file_size, Path(self.dst_dir.drive), self.disk_buffer_size))
             log.debug(f"disk_space wait complete for vid_id: {self.vid_id}")
         log.debug(f"Releasing disk_space condition lock for vid_id: {self.vid_id}")
         success, attempted_copy, need_to_copy = None, None, None
