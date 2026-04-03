@@ -1,3 +1,4 @@
+from pathlib import Path
 from tempfile import TemporaryDirectory
 from thefuzz import fuzz
 from ocr.Config import CONFIG as config
@@ -48,7 +49,8 @@ class Ocr:
         gray = Ocr.grayscale(img)
         regions = Ocr.split_frame(gray)
         regions = [Ocr.threshold(i) for i in regions]
-        regions = [Ocr.add_border(i, 20) for i in regions]
+        # The documentation suggests a border size of 10 pixels
+        regions = [Ocr.add_border(i, 10) for i in regions]
         raw_results = Ocr.ocr_batch(regions)
         return Ocr.interpret_results(raw_results)
 
@@ -79,14 +81,16 @@ class Ocr:
     @staticmethod
     def ocr_batch(images):
         with TemporaryDirectory() as tmpdir:
+            tmpdir = "./tmp"
             i = 0
             for img in images:
-                cv2.imwrite(f"{tmpdir}/img{i}.png", img)
+                fpath = Path(tmpdir) / f"img{i}.png"
+                cv2.imwrite(fpath, img)
                 i += 1
             with open(f"{tmpdir}/batch.txt", 'w') as fout:
                 fout.writelines([f"{tmpdir}/img{j}.png\n" for j in range(i)])
 
-            results = pytesseract.image_to_string(f"{tmpdir}/batch.txt", config="--psm 7").split("\x0c")
+            results = pytesseract.image_to_string(f"{tmpdir}/batch.txt", config="--psm 7 --user-patterns user-patterns").split("\x0c")
             res_dct = dict()
             for region, raw in zip(config.ocr_regions.keys(), results):
                 res_dct[region] = raw.strip()
