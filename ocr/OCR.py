@@ -1,10 +1,12 @@
+from pathlib import Path
 from tempfile import TemporaryDirectory
-from thefuzz import fuzz
-from ocr.Config import CONFIG as config
 
 import cv2
-
 import pytesseract
+from thefuzz import fuzz
+
+from ocr.Config import CONFIG as config
+
 
 class Ocr:
 
@@ -19,7 +21,7 @@ class Ocr:
             return None if longest == "" else longest
 
         def timer_str_to_sec(s):
-            if ":" in s and len(lst:=s.split(":")) == 2:
+            if ":" in s and len(lst := s.split(":")) == 2:
                 minutes, seconds = lst
                 if (minutes + seconds).isnumeric() and 0 <= int(minutes) <= 59 and 0 <= int(seconds) <= 59:
                     return (int(minutes) * 60) + int(seconds), f"{minutes}:{seconds}"
@@ -44,13 +46,26 @@ class Ocr:
         return timer_secs, timer_str, match_num, match_mode, div_name, div_type
 
     @staticmethod
-    def analyze_frame(img):
-        gray = Ocr.grayscale(img)
-        regions = Ocr.split_frame(gray)
+    def analyze_frame(img, video_pos):
+        # cv2.imwrite(Path("./images") / f"{video_pos.frame()}-full.png", img)
+        regions = Ocr.split_frame(img)
+        regions = [Ocr.resize(i, 3) for i in regions]
+        regions = [Ocr.grayscale(i) for i in regions]
         regions = [Ocr.threshold(i) for i in regions]
-        regions = [Ocr.add_border(i, 20) for i in regions]
+        # The documentation suggests a border size of 10 pixels
+        regions = [Ocr.add_border(i, 10) for i in regions]
+        # for index, region in enumerate(regions):
+        #     cv2.imwrite(Path("./images") / f"{video_pos.frame()}-region_3x_{index}.png", region)
+
         raw_results = Ocr.ocr_batch(regions)
+        # with open(Path("./images") / f"{video_pos.frame()}-ocr_res.txt", 'w') as fout:
+        #     fout.writelines([f"{k}: {v}\n" for k, v in raw_results.items()])
+
         return Ocr.interpret_results(raw_results)
+
+    @staticmethod
+    def resize(img, factor):
+        return cv2.resize(img, None, fx=factor, fy=factor, interpolation=cv2.INTER_CUBIC)
 
     @staticmethod
     def add_border(img, size: int):
@@ -81,12 +96,17 @@ class Ocr:
         with TemporaryDirectory() as tmpdir:
             i = 0
             for img in images:
-                cv2.imwrite(f"{tmpdir}/img{i}.png", img)
+                fpath = Path(tmpdir) / f"img{i}.png"
+                cv2.imwrite(fpath, img)
                 i += 1
             with open(f"{tmpdir}/batch.txt", 'w') as fout:
                 fout.writelines([f"{tmpdir}/img{j}.png\n" for j in range(i)])
-
-            results = pytesseract.image_to_string(f"{tmpdir}/batch.txt", config="--psm 7").split("\x0c")
+            tess_config = ' '.join([
+                "--psm 7",
+                "--user-patterns user-patterns"
+                "--user-words user-words"
+            ])
+            results = pytesseract.image_to_string(f"{tmpdir}/batch.txt", config=tess_config).split("\x0c")
             res_dct = dict()
             for region, raw in zip(config.ocr_regions.keys(), results):
                 res_dct[region] = raw.strip()
