@@ -55,3 +55,7 @@ class DatabaseRepository:
             conn.commit()
             conn.close()
         return None
+
+    def update_telemetry(self, info: dict):
+        """Update the Postgres Database with information about the job status"""
+        pass

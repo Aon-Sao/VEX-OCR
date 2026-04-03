@@ -20,6 +20,7 @@ class MatchFinder:
 
     def __init__(self):
         self.furthest_pos = VidPos(time=config.scan_start_offset)
+        self.db = DatabaseRepository(config.pg_conn_str)
 
     def find_all_matches(self):
         video_end = VidPos(frame=config.frame_count)
@@ -43,6 +44,13 @@ class MatchFinder:
                 start = self.furthest_pos
             start += skip_size
             matches_may_remain = start < (video_end - VidPos(time=shortest_driver))
+            self.db.update_telemetry({
+                "furthest_frame": self.furthest_pos.frame(),
+                "total_frames": video_end.frame(),
+                "furthest_time": self.furthest_pos.pretty_time(),
+                "total_time": video_end.pretty_time(),
+                "latest_match_name": match.match_name if match is not None else None
+            })
         log.info(f"No matches remain")
 
     def find_next_match(self, start, end, skip):
@@ -51,9 +59,7 @@ class MatchFinder:
         self.furthest_pos = max(self.furthest_pos, furthest_pos)
         return MatchResolver(frame) if frame else None
 
-    @staticmethod
-    def process_found_match(match: MatchResolver):
+    def process_found_match(self, match: MatchResolver):
         match_info = match.get_data_obj()
-        dbi = DatabaseRepository(config.pg_conn_str)
-        dbi.insert_found_match(match_info)
+        self.db.insert_found_match(match_info)
         return match.driver.region.end()
