@@ -1,7 +1,7 @@
 import os
 import cv2
 from pathlib import Path
-from subprocess import run
+from subprocess import run, CalledProcessError
 
 from ocr.DataObjects import InputData
 from ocr.FileBrowser import FileBrowser
@@ -99,10 +99,14 @@ class Config:
         return driver_skip_size, auton_skip_size
 
     def set_fps_and_total_frames(self):
-        args = ["ffprobe", "-v", "error", "-select_streams", "v:0", "-count_packets", "-of",
+        args = ["ffprobe", "-v", "er"
+                                 "ror", "-select_streams", "v:0", "-count_packets", "-of",
                 "default=noprint_wrappers=1:nokey=1",
                 "-show_entries", "stream=avg_frame_rate,nb_read_packets", str(self.video_path.absolute())]
-        proc = run(args=args, capture_output=True, check=True)
+        try:
+            proc = run(args=args, capture_output=True, check=True)
+        except CalledProcessError as e:
+            raise Exception(e.stderr.decode())
         output = proc.stdout.decode()
         fps_str, total_frames = output.split("\n", maxsplit=1)
         n, d = fps_str.split(r"/")
