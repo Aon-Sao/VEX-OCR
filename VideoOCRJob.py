@@ -1,20 +1,14 @@
 import json
 import logging
 import os
-from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 
 log = logging.getLogger(__name__)
-from dotenv import load_dotenv
 
 from ocr import run_ocr
 
 
 class VideoOCRJob:
-
-    load_dotenv()
-    max_workers = int(os.environ["MAX_WORKERS"])
-    executor = ProcessPoolExecutor(max_workers=max_workers, max_tasks_per_child=1)
 
     def __init__(self, video_path: Path, scan_start_offset: int,
                  divisions: list, video_id: int):
@@ -26,9 +20,6 @@ class VideoOCRJob:
         self.worker_host = os.environ["WORKER_HOST"]
         self.ocr_job_json = None
         self.success = None
-
-    def submit(self):
-        return self.executor.submit(self.perform)
 
     def perform(self):
         self.make_ocr_job_json()

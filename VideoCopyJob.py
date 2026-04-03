@@ -1,13 +1,8 @@
 import hashlib
 import logging
-import os
 import shutil
-import threading
-from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from threading import Condition
-
-from dotenv import load_dotenv
+from threading import Condition, Semaphore
 
 from Monitors import Units
 
@@ -19,15 +14,8 @@ class InsufficientDiskSpace(OSError):
 
 class VideoCopyJob:
 
-    load_dotenv()
-    max_workers = int(os.environ["MAX_WORKERS"])
-    max_queued_files = max_workers * 3
-    semaphore = threading.Semaphore(max_queued_files)
-    executor = ThreadPoolExecutor(max_workers=1)
-    disk_space_cond = Condition()
-
-    def __init__(self, src_file: Path, dst_dir: Path, src_file_size: int, disk_buffer_size: int,
-                 vid_id: int, src_file_hash: str | None = None):
+    def __init__(self, src_file: Path, dst_dir: Path, src_file_size: int, disk_buffer_size: int, vid_id: int,
+                 semaphore: Semaphore, cond: Condition, src_file_hash: str | None = None):
         self.src_file = Path(src_file)
         self.dst_dir = Path(dst_dir)
         self.dst_file = self.dst_dir / self.src_file.name
@@ -35,9 +23,8 @@ class VideoCopyJob:
         self.src_file_size = src_file_size
         self.disk_buffer_size = disk_buffer_size
         self.vid_id = vid_id
-
-    def submit(self):
-        return self.executor.submit(self.perform)
+        self.semaphore = semaphore
+        self.disk_space_cond = cond
 
     def perform(self):
         log.debug(f"Obtaining disk_space condition lock for vid_id: {self.vid_id}")
