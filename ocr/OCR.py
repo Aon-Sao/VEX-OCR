@@ -48,19 +48,19 @@ class Ocr:
 
     @staticmethod
     def analyze_frame(img, video_pos):
-        cv2.imwrite(Path("./images") / f"{video_pos.frame()}-full.png", img)
+        # cv2.imwrite(Path("./images") / f"{video_pos.frame()}-full.png", img)
         regions = Ocr.split_frame(img)
         regions = [Ocr.resize(i, 3) for i in regions]
         regions = [Ocr.grayscale(i) for i in regions]
         regions = [Ocr.threshold(i) for i in regions]
         # The documentation suggests a border size of 10 pixels
         regions = [Ocr.add_border(i, 10) for i in regions]
-        for index, region in enumerate(regions):
-            cv2.imwrite(Path("./images") / f"{video_pos.frame()}-region_3x_{index}.png", region)
+        # for index, region in enumerate(regions):
+        #     cv2.imwrite(Path("./images") / f"{video_pos.frame()}-region_3x_{index}.png", region)
 
         raw_results = Ocr.ocr_batch(regions)
-        with open(Path("./images") / f"{video_pos.frame()}-ocr_res.txt", 'w') as fout:
-            fout.writelines([f"{k}: {v}\n" for k, v in raw_results.items()])
+        # with open(Path("./images") / f"{video_pos.frame()}-ocr_res.txt", 'w') as fout:
+        #     fout.writelines([f"{k}: {v}\n" for k, v in raw_results.items()])
 
         return Ocr.interpret_results(raw_results)
 
