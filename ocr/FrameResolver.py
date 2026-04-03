@@ -6,8 +6,9 @@ import logging
 
 log = logging.getLogger(__name__)
 
+
 class FrameResolver:
-    def __init__(self, video_pos: VidPos, cv2_frame, ocr = False):
+    def __init__(self, video_pos: VidPos, cv2_frame, ocr=False):
         self.video_pos = video_pos
         self.cv2_frame = cv2_frame
         self.timer_seconds = None
@@ -19,7 +20,7 @@ class FrameResolver:
         self._full_ocr = False
 
         if ocr:
-            results = Ocr.analyze_frame(self.cv2_frame)
+            results = Ocr.analyze_frame(self.cv2_frame, self.video_pos)
             (self.timer_seconds,
              self.timer_string,
              self.match_name,
@@ -33,12 +34,12 @@ class FrameResolver:
 
     def __str__(self):
         return "Frame Object\n" + \
-                f"\tVideo Pos: {self.video_pos}\n" + \
-                f"\tTimer Sec: {self.timer_seconds}\n" + \
-                f"\tTimer Str: {self.timer_string}\n" + \
-                f"\tMatch Num: {self.match_name}\n" + \
-                f"\tMatch Mode: {self.match_mode}\n" + \
-                f"\tDiv Name: {self.division_name}"
+            f"\tVideo Pos: {self.video_pos}\n" + \
+            f"\tTimer Sec: {self.timer_seconds}\n" + \
+            f"\tTimer Str: {self.timer_string}\n" + \
+            f"\tMatch Num: {self.match_name}\n" + \
+            f"\tMatch Mode: {self.match_mode}\n" + \
+            f"\tDiv Name: {self.division_name}"
 
     def is_driver(self):
         return self.match_mode == "driver"
