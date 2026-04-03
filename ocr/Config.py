@@ -1,10 +1,9 @@
-import os
-import cv2
 from pathlib import Path
 from subprocess import run, CalledProcessError
 
+import cv2
+
 from ocr.DataObjects import InputData
-from ocr.FileBrowser import FileBrowser
 
 
 class Config:
@@ -17,6 +16,7 @@ class Config:
         return cls.instance
 
     def __init__(self):
+        self.input_data = None
         self.video_obj = None
         self.video_path = None
         self.frame_count = None
@@ -41,50 +41,22 @@ class Config:
         # How many frames should be quality checked within a phase
         self.num_phase_quality_checks = 5
 
-        self.expected_strings = [
-            "HS",
-            "MS",
-            "ES",
-            "High",
-            "Middle",
-            "Elementary",
-            "School",
-            "Qual", "Qualification", "Qualifications",
-            "Practice",
-            "QF", "Quarterfinal", "Quarter-final",
-            "SF", "Semifinal", "Semi-final",
-            "F", "Final",
-            "R16", "Round of 16", "Round-of-16",
-            "R32", "Round of 16", "Round-of-32",
-            "R64", "Round of 16", "Round-of-64",
-            "R128", "Round of 16", "Round-of-128",
-            "Skills",
-            "Timeout",
-            "Top",
-            "Driver", "Driver Control",
-            "Auton", "Autonomous",
-            "Control",
-        ]
-
     def configure(self, input_data: InputData):
+        self.input_data = input_data
         self.scan_start_offset = input_data.scan_start_offset
         self.pg_conn_str = input_data.pg_conn_str
         self.divisions = input_data.divisions
         self.video_id = input_data.video_id
-        self.video_path = Path(input_data.ssd_vid_path)
         self.set_fps_and_total_frames()
         self.worker_host = input_data.worker_host
         self.division_names = [i.division_name for i in self.divisions]
         self.driver_skip_size, self.auton_skip_size = self.set_skip_sizes()
-        self.expected_strings.extend(self.division_names)
-        self.expected_strings.extend({i.program_code for i in self.divisions})
-        self.expected_strings = [i.lower() for i in self.expected_strings]
 
         for k in self.ocr_regions.keys():
             self.ocr_regions[k] = getattr(input_data.ocr_regions, k)
 
     def open_video(self):
-        self.video_obj = cv2.VideoCapture(self.video_path)
+        self.video_obj = cv2.VideoCapture(Path(self.input_data.ssd_vid_path))
 
     def release_video(self):
         self.video_obj.release()
@@ -102,7 +74,8 @@ class Config:
         args = ["ffprobe", "-v", "er"
                                  "ror", "-select_streams", "v:0", "-count_packets", "-of",
                 "default=noprint_wrappers=1:nokey=1",
-                "-show_entries", "stream=avg_frame_rate,nb_read_packets", str(self.video_path.absolute())]
+                "-show_entries", "stream=avg_frame_rate,nb_read_packets",
+                str(Path(self.input_data.ssd_vid_path).absolute())]
         try:
             proc = run(args=args, capture_output=True, check=True)
         except CalledProcessError as e:
