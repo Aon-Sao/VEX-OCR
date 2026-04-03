@@ -1,39 +1,14 @@
-from subprocess import run
-import functools
 import cv2
 
-from ocr.FrameResolver import FrameResolver
 from ocr.Config import CONFIG as config
+from ocr.FrameResolver import FrameResolver
 from ocr.VideoPosition import VideoPosition
 
-
-def notify(dest):
-    def wrapper_maker(func):
-        @functools.wraps(func)
-        def wrapper():
-            message = "No message"
-            try:
-                result = func()
-                message = "SUCCESS"
-                return result
-            except Exception as e:
-                message = f"{type(e).__name__}: {e}"
-                raise e
-            finally:
-                run(["curl", "-d", f'"{message}"', f"ntfy.sh/{dest}"], capture_output=True)
-        return wrapper
-    return wrapper_maker
 
 def get_frame(video_pos, ocr = True):
     config.video_obj.set(cv2.CAP_PROP_POS_FRAMES, video_pos.frame())
     _, frame = config.video_obj.read()
     return FrameResolver(video_pos, frame, ocr=ocr)
-
-def display_img(img):
-    cv2.namedWindow("display", cv2.WINDOW_NORMAL)
-    cv2.imshow("display", img)
-    cv2.waitKey(0)
-    cv2.destroyWindow("display")
 
 def skip_search(start, end, skip, accept=None, reject=None, ocr=True, left_to_right=True):
 
@@ -77,37 +52,3 @@ def skip_search(start, end, skip, accept=None, reject=None, ocr=True, left_to_ri
         elif reject(frame):
             return None, furthest_pos
     return None, furthest_pos
-
-def highlight_region(img, top_left_x, top_left_y, bottom_right_x, bottom_right_y):
-    cv2.rectangle(img, (top_left_x, top_left_y), (bottom_right_x, bottom_right_y), (255, 0, 0), 5)
-    return img
-
-## Originally in Config.py
-## Uncomment and refactor if needed soon.
-## Otherwise delete later.
-
-# def select_ocr_regions(self, time):
-#     for region in self.ocr_regions.keys():
-#         if self.ocr_regions[region] is None:
-#             self.select_ocr_region(time, region)
-#
-# def select_ocr_region(self, time, field_type):
-#     frame_num = int(float(time) * self.fps)
-#     self.video_obj.set(cv2.CAP_PROP_POS_FRAMES, frame_num)
-#     ret, frame = self.video_obj.read()
-#     title = f"Select {field_type}"
-#     sel = self.select_region(frame, title)
-#     self.ocr_regions[field_type] = list(sel)
-#
-# @staticmethod
-# def select_region(img, title="Select region"):
-#     cv2.namedWindow(title, cv2.WINDOW_NORMAL)
-#     print(title)
-#     top_left_x, top_left_y, width, height = cv2.selectROI(windowName=title, img=img)
-#     bottom_right_x = top_left_x + width
-#     bottom_right_y = top_left_y + height
-#     cv2.destroyWindow(winname=title)
-#     return top_left_x, top_left_y, bottom_right_x, bottom_right_y
-#
-# def select_video_path(self):
-#     self.set_video_path(FileBrowser("Select video file", os.getcwd()).browse())

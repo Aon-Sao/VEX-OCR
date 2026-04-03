@@ -1,8 +1,7 @@
-import ocr.utils as utils
-from ocr.VideoPosition import VideoPosition as VidPos
-from ocr.OCR import Ocr
-
 import logging
+
+from ocr.OCR import Ocr
+from ocr.VideoPosition import VideoPosition as VidPos
 
 log = logging.getLogger(__name__)
 
@@ -53,5 +52,3 @@ class FrameResolver:
     def full_ocr(self):
         return self._full_ocr
 
-    def show(self):
-        utils.display_img(self.cv2_frame)
