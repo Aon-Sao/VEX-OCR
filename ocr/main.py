@@ -13,15 +13,6 @@ import logging
 log = logging.getLogger(__name__)
 
 
-def parse_arguments():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-j", "--json", required=True, type=Path)
-    jsn_path = vars(parser.parse_args())["json"]
-    with open(jsn_path, 'r') as fin:
-        jsn = fin.read()
-    return jsn
-
-
 def setup_logging(vid_id: int):
     log_path = Path(f"video-{vid_id}.log") if vid_id else Path("ocrTool.log")
 
