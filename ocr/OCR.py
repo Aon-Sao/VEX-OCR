@@ -1,12 +1,11 @@
-import pathlib
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from thefuzz import fuzz
-from ocr.Config import CONFIG as config
 
 import cv2
-
 import pytesseract
+from thefuzz import fuzz
+
+from ocr.Config import CONFIG as config
 
 
 class Ocr:
@@ -95,7 +94,6 @@ class Ocr:
     @staticmethod
     def ocr_batch(images):
         with TemporaryDirectory() as tmpdir:
-            tmpdir = "./tmp"
             i = 0
             for img in images:
                 fpath = Path(tmpdir) / f"img{i}.png"
@@ -103,9 +101,12 @@ class Ocr:
                 i += 1
             with open(f"{tmpdir}/batch.txt", 'w') as fout:
                 fout.writelines([f"{tmpdir}/img{j}.png\n" for j in range(i)])
-
-            results = pytesseract.image_to_string(f"{tmpdir}/batch.txt",
-                                                  config="--psm 7 --user-patterns user-patterns").split("\x0c")
+            tess_config = ' '.join([
+                "--psm 7",
+                "--user-patterns user-patterns"
+                "--user-words user-words"
+            ])
+            results = pytesseract.image_to_string(f"{tmpdir}/batch.txt", config=tess_config).split("\x0c")
             res_dct = dict()
             for region, raw in zip(config.ocr_regions.keys(), results):
                 res_dct[region] = raw.strip()
