@@ -67,7 +67,7 @@ class VideoCopyJob:
 
     def copy_files(self):
         log.debug(f"Obtaining copy_semaphore for vid_id: {self.vid_id}")
-        with VideoCopyJob.semaphore:
+        with self.semaphore:
             attempted_copy = True
             log.debug(f"Starting copy for vid_id: {self.vid_id}")
             a, b = attempted_copy, shutil.copy2(self.src_file, self.dst_dir)
