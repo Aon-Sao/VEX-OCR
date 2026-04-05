@@ -13,32 +13,25 @@ class FileBrowser:
             self.filename = filedialog.askopenfilename(
                 initialdir=self.start_dir,
                 title=self.title,
-                filetypes=(("all files", "*.*"),), )
+                filetypes=(("all files", "*.*"),),
+            )
 
         # Create the root window
         window = Tk()
-        window.title('File Browser')
+        window.title("File Browser")
         window.geometry("500x500")
         window.config(background="black")
 
         # Create a File Explorer label
-        label_file_explorer = Label(window,
-                                    text=self.title,
-                                    width=100, height=4,
-                                    fg="green",
-                                    bg="black")
+        label_file_explorer = Label(
+            window, text=self.title, width=100, height=4, fg="green", bg="black"
+        )
 
-        button_explore = Button(window,
-                                text="Browse Files",
-                                command=browse_files,
-                                fg="green",
-                                bg="black")
+        button_explore = Button(
+            window, text="Browse Files", command=browse_files, fg="green", bg="black"
+        )
 
-        button_exit = Button(window,
-                             text="Done",
-                             command=exit,
-                             fg="green",
-                             bg="black")
+        button_exit = Button(window, text="Done", command=exit, fg="green", bg="black")
 
         # Grid method is chosen for placing
         # the widgets at respective positions

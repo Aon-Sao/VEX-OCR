@@ -33,7 +33,7 @@ class Config:
             "MATCH_NUM": None,
             "DIVISION_NAME": None,
             "MATCH_TIMER": None,
-            "MATCH_MODE": None
+            "MATCH_MODE": None,
         }
 
         # Seconds between auton and driver
@@ -49,20 +49,37 @@ class Config:
             "Middle",
             "Elementary",
             "School",
-            "Qual", "Qualification", "Qualifications",
+            "Qual",
+            "Qualification",
+            "Qualifications",
             "Practice",
-            "QF", "Quarterfinal", "Quarter-final",
-            "SF", "Semifinal", "Semi-final",
-            "F", "Final",
-            "R16", "Round of 16", "Round-of-16",
-            "R32", "Round of 16", "Round-of-32",
-            "R64", "Round of 16", "Round-of-64",
-            "R128", "Round of 16", "Round-of-128",
+            "QF",
+            "Quarterfinal",
+            "Quarter-final",
+            "SF",
+            "Semifinal",
+            "Semi-final",
+            "F",
+            "Final",
+            "R16",
+            "Round of 16",
+            "Round-of-16",
+            "R32",
+            "Round of 16",
+            "Round-of-32",
+            "R64",
+            "Round of 16",
+            "Round-of-64",
+            "R128",
+            "Round of 16",
+            "Round-of-128",
             "Skills",
             "Timeout",
             "Top",
-            "Driver", "Driver Control",
-            "Auton", "Autonomous",
+            "Driver",
+            "Driver Control",
+            "Auton",
+            "Autonomous",
             "Control",
         ]
 
@@ -99,10 +116,19 @@ class Config:
         return driver_skip_size, auton_skip_size
 
     def set_fps_and_total_frames(self):
-        args = ["ffprobe", "-v", "er"
-                                 "ror", "-select_streams", "v:0", "-count_packets", "-of",
-                "default=noprint_wrappers=1:nokey=1",
-                "-show_entries", "stream=avg_frame_rate,nb_read_packets", str(self.video_path.absolute())]
+        args = [
+            "ffprobe",
+            "-v",
+            "er" "ror",
+            "-select_streams",
+            "v:0",
+            "-count_packets",
+            "-of",
+            "default=noprint_wrappers=1:nokey=1",
+            "-show_entries",
+            "stream=avg_frame_rate,nb_read_packets",
+            str(self.video_path.absolute()),
+        ]
         try:
             proc = run(args=args, capture_output=True, check=True)
         except CalledProcessError as e:

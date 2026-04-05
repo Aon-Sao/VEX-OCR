@@ -17,7 +17,7 @@ def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument("-j", "--json", required=True, type=Path)
     jsn_path = vars(parser.parse_args())["json"]
-    with open(jsn_path, 'r') as fin:
+    with open(jsn_path, "r") as fin:
         jsn = fin.read()
     return jsn
 
@@ -32,15 +32,18 @@ def setup_logging(vid_id: int):
 
     logging.basicConfig(
         level=logging.INFO,
-        format='%(asctime)s [%(levelname)s] %(message)s',
-        handlers=[file_handler, console_handler]
+        format="%(asctime)s [%(levelname)s] %(message)s",
+        handlers=[file_handler, console_handler],
     )
 
     def handle_exception(exc_type, exc_value, exc_traceback):
         if issubclass(exc_type, KeyboardInterrupt):
             sys.__excepthook__(exc_type, exc_value, exc_traceback)
             return
-        logging.critical(f"Uncaught exception in vid_id: {vid_id}", exc_info=(exc_type, exc_value, exc_traceback))
+        logging.critical(
+            f"Uncaught exception in vid_id: {vid_id}",
+            exc_info=(exc_type, exc_value, exc_traceback),
+        )
 
     sys.excepthook = handle_exception
 
@@ -49,7 +52,11 @@ def run_ocr(input_json_str, vid_id=None):
     try:
         print(f"run_ocr vid_id: {vid_id}")
         setup_logging(vid_id)
-        log.info("Started. Parsing input. vid_id: %s input_json_str: %s", vid_id, input_json_str)
+        log.info(
+            "Started. Parsing input. vid_id: %s input_json_str: %s",
+            vid_id,
+            input_json_str,
+        )
         input_data = msgspec.json.decode(input_json_str, type=InputData)
         log.info("Configuring.")
         config.configure(input_data)

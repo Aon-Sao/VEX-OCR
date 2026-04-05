@@ -18,19 +18,27 @@ class PhaseResolver:
         self.division: Division | None = None
         self.duration: VidPos | None = None
         self.region: VidReg = self.compute_edges()
-        self.quality_rating: tuple[int, int] = self.quality_check(config.num_phase_quality_checks)
+        self.quality_rating: tuple[int, int] = self.quality_check(
+            config.num_phase_quality_checks
+        )
 
     def __str__(self) -> str:
         return self.region.__str__() + f"\nQuality Rating: {self.quality_rating}"
 
     def compute_left_edge(self) -> VidPos:
-        return self.initial_frame.video_pos + VidPos(time=self.initial_frame.timer_seconds)
+        return self.initial_frame.video_pos + VidPos(
+            time=self.initial_frame.timer_seconds
+        )
 
     def compute_right_edge(self, stop: VidPos) -> VidPos:
         for dv in config.divisions:
             if dv.division_name.lower() == self.division_name.lower():
                 self.division = dv
-        self.duration = self.division.driver_duration if self.is_driver() else self.division.auton_duration
+        self.duration = (
+            self.division.driver_duration
+            if self.is_driver()
+            else self.division.auton_duration
+        )
         self.duration = VidPos(time=self.duration)
         return stop - self.duration
 

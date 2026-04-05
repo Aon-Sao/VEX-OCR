@@ -20,14 +20,21 @@ def notify(dest):
                 message = f"{type(e).__name__}: {e}"
                 raise e
             finally:
-                run(["curl", "-d", f'"{message}"', f"ntfy.sh/{dest}"], capture_output=True)
+                run(
+                    ["curl", "-d", f'"{message}"', f"ntfy.sh/{dest}"],
+                    capture_output=True,
+                )
+
         return wrapper
+
     return wrapper_maker
 
-def get_frame(video_pos, ocr = True):
+
+def get_frame(video_pos, ocr=True):
     config.video_obj.set(cv2.CAP_PROP_POS_FRAMES, video_pos.frame())
     _, frame = config.video_obj.read()
     return FrameResolver(video_pos, frame, ocr=ocr)
+
 
 def display_img(img):
     cv2.namedWindow("display", cv2.WINDOW_NORMAL)
@@ -35,7 +42,10 @@ def display_img(img):
     cv2.waitKey(0)
     cv2.destroyWindow("display")
 
-def skip_search(start, end, skip, accept=None, reject=None, ocr=True, left_to_right=True):
+
+def skip_search(
+    start, end, skip, accept=None, reject=None, ocr=True, left_to_right=True
+):
 
     # Make sure types are correct
     start = VideoPosition(start)
@@ -78,9 +88,13 @@ def skip_search(start, end, skip, accept=None, reject=None, ocr=True, left_to_ri
             return None, furthest_pos
     return None, furthest_pos
 
+
 def highlight_region(img, top_left_x, top_left_y, bottom_right_x, bottom_right_y):
-    cv2.rectangle(img, (top_left_x, top_left_y), (bottom_right_x, bottom_right_y), (255, 0, 0), 5)
+    cv2.rectangle(
+        img, (top_left_x, top_left_y), (bottom_right_x, bottom_right_y), (255, 0, 0), 5
+    )
     return img
+
 
 ## Originally in Config.py
 ## Uncomment and refactor if needed soon.

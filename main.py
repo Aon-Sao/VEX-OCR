@@ -24,15 +24,17 @@ def setup_logging():
 
     logging.basicConfig(
         level=logging.DEBUG,
-        format='%(asctime)s [%(levelname)s] %(message)s',
-        handlers=[file_handler, console_handler]
+        format="%(asctime)s [%(levelname)s] %(message)s",
+        handlers=[file_handler, console_handler],
     )
 
     def handle_exception(exc_type, exc_value, exc_traceback):
         if issubclass(exc_type, KeyboardInterrupt):
             sys.__excepthook__(exc_type, exc_value, exc_traceback)
             return
-        logging.critical(f"Uncaught exception ", exc_info=(exc_type, exc_value, exc_traceback))
+        logging.critical(
+            f"Uncaught exception ", exc_info=(exc_type, exc_value, exc_traceback)
+        )
 
     sys.excepthook = handle_exception
 

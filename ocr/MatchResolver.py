@@ -20,7 +20,11 @@ class MatchResolver:
         self.program_type = initial_frame.program_type
         self.auton, self.driver = self.find_phases()
         if self.complete():
-            start = self.driver.region.start() if self.ignore_auton else self.auton.region.start()
+            start = (
+                self.driver.region.start()
+                if self.ignore_auton
+                else self.auton.region.start()
+            )
             self.region = VidReg(start, self.driver.region.end())
 
     def complete(self):
@@ -28,17 +32,19 @@ class MatchResolver:
             self.match_name,
             self.division_name,
             self.program_type,
-            self.driver
+            self.driver,
         ] and (self.ignore_auton or (self.auton is not None))
 
     def __str__(self):
-        return f"Match Object\n" + \
-            ("INCOMPLETE!\n" if not self.complete() else "") + \
-            f"\tMatch Num: {self.match_name}\n" + \
-            f"\tDivision Name: {self.division_name}\n" + \
-            f"\tProgram Type: {self.program_type}\n" + \
-            f"\tAuton: {str(self.auton).replace("\n", "\n\t       ")}\n" + \
-            f"\tDriver: {str(self.driver).replace("\n", "\n\t        ")}"
+        return (
+            f"Match Object\n"
+            + ("INCOMPLETE!\n" if not self.complete() else "")
+            + f"\tMatch Num: {self.match_name}\n"
+            + f"\tDivision Name: {self.division_name}\n"
+            + f"\tProgram Type: {self.program_type}\n"
+            + f"\tAuton: {str(self.auton).replace("\n", "\n\t       ")}\n"
+            + f"\tDriver: {str(self.driver).replace("\n", "\n\t        ")}"
+        )
 
     def get_data_obj(self):
         event_sku = self.event_sku_lookup()
@@ -53,14 +59,20 @@ class MatchResolver:
             auton_stop_sec=self.auton.region.end().time() if self.auton else None,
             auton_stop_frame=self.auton.region.end().frame() if self.auton else None,
             driver_start_sec=self.driver.region.start().time() if self.driver else None,
-            driver_start_frame=self.driver.region.start().frame() if self.driver else None,
+            driver_start_frame=(
+                self.driver.region.start().frame() if self.driver else None
+            ),
             driver_stop_sec=self.driver.region.end().time() if self.driver else None,
             driver_stop_frame=self.driver.region.end().frame() if self.driver else None,
             found_complete_match=self.complete(),
             auton_quality_passes=self.auton.quality_rating[0] if self.auton else None,
             auton_quality_checks=self.auton.quality_rating[1] if self.auton else None,
-            driver_quality_passes=self.driver.quality_rating[0] if self.driver else None,
-            driver_quality_checks=self.driver.quality_rating[1] if self.driver else None,
+            driver_quality_passes=(
+                self.driver.quality_rating[0] if self.driver else None
+            ),
+            driver_quality_checks=(
+                self.driver.quality_rating[1] if self.driver else None
+            ),
             notes=None,
         )
 
@@ -78,10 +90,16 @@ class MatchResolver:
             end = start - VidPos(time=config.max_phase_distance)
             skip = VidPos(frame=config.auton_skip_size * -1)
             start += skip  # do not OCR the first driver frame again
-            accept = lambda x: x.is_auton() and x.full_ocr() and x.match_name == self.match_name
+            accept = (
+                lambda x: x.is_auton()
+                and x.full_ocr()
+                and x.match_name == self.match_name
+            )
             # skipping a reject lambda
             log.info(f"Searching for auton phase")
-            frame, _ = utils.skip_search(start, end, skip, accept=accept, left_to_right=False)
+            frame, _ = utils.skip_search(
+                start, end, skip, accept=accept, left_to_right=False
+            )
             log.info(f"Resolving auton phase")
             auton_phase = PhaseResolver(frame) if frame is not None else None
         else:

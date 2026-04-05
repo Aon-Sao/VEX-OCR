@@ -8,7 +8,9 @@ from ocr.Config import CONFIG as config
 @functools.total_ordering
 class VideoPosition:
     def __init__(self, frame: int = None, time: float | int = None):
-        if ((frame is None) and (time is None)) or ((frame is not None) and (time is not None)):
+        if ((frame is None) and (time is None)) or (
+            (frame is not None) and (time is not None)
+        ):
             raise TypeError("Must specify either frame or time (exclusive)")
         elif isinstance(frame, VideoPosition):
             self._frame = frame.frame()
@@ -19,7 +21,9 @@ class VideoPosition:
         elif type(time) in [float, int, Decimal]:
             self._frame = round(time * config.fps)
         else:
-            raise TypeError("time/frame must be one of: [float, int, Decimal, VideoPosition]")
+            raise TypeError(
+                "time/frame must be one of: [float, int, Decimal, VideoPosition]"
+            )
 
     def pretty_time(self):
         total_seconds = int(self.time())

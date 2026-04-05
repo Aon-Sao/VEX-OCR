@@ -23,14 +23,18 @@ class MatchFinder:
 
     def find_all_matches(self):
         video_end = VidPos(frame=config.frame_count)
-        shortest_driver = min([dv.driver_duration for dv in config.divisions if dv.driver_duration > 0])
+        shortest_driver = min(
+            [dv.driver_duration for dv in config.divisions if dv.driver_duration > 0]
+        )
 
         start = self.furthest_pos
         skip_size = VidPos(frame=config.driver_skip_size)
 
         matches_may_remain = True
         while matches_may_remain:
-            log.info(f"Progress: {(self.furthest_pos.frame() / video_end.frame()) * 100:.0f}%")
+            log.info(
+                f"Progress: {(self.furthest_pos.frame() / video_end.frame()) * 100:.0f}%"
+            )
             if (match := self.find_next_match(start, video_end, skip_size)) is not None:
                 log.info(str(match))
                 self.process_found_match(match)

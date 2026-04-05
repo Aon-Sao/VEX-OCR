@@ -23,7 +23,11 @@ class Ocr:
         def timer_str_to_sec(s):
             if ":" in s and len(lst := s.split(":")) == 2:
                 minutes, seconds = lst
-                if (minutes + seconds).isnumeric() and 0 <= int(minutes) <= 59 and 0 <= int(seconds) <= 59:
+                if (
+                    (minutes + seconds).isnumeric()
+                    and 0 <= int(minutes) <= 59
+                    and 0 <= int(seconds) <= 59
+                ):
                     return (int(minutes) * 60) + int(seconds), f"{minutes}:{seconds}"
             return None, None
 
@@ -40,9 +44,13 @@ class Ocr:
         # TODO: avoid special casing
         if match_num == "QUALS":
             match_num = "QUAL 5"
-        ratios = {i: fuzz.partial_ratio(div_name.lower(), i) for i in config.division_names}
+        ratios = {
+            i: fuzz.partial_ratio(div_name.lower(), i) for i in config.division_names
+        }
         div_name = longest_best_match(ratios)
-        div_type = [i.program_code for i in config.divisions if i.division_name == div_name][0]
+        div_type = [
+            i.program_code for i in config.divisions if i.division_name == div_name
+        ][0]
         return timer_secs, timer_str, match_num, match_mode, div_name, div_type
 
     @staticmethod
@@ -65,11 +73,15 @@ class Ocr:
 
     @staticmethod
     def resize(img, factor):
-        return cv2.resize(img, None, fx=factor, fy=factor, interpolation=cv2.INTER_CUBIC)
+        return cv2.resize(
+            img, None, fx=factor, fy=factor, interpolation=cv2.INTER_CUBIC
+        )
 
     @staticmethod
     def add_border(img, size: int):
-        return cv2.copyMakeBorder(img, size, size, size, size, cv2.BORDER_CONSTANT, value=[255, 255, 255])
+        return cv2.copyMakeBorder(
+            img, size, size, size, size, cv2.BORDER_CONSTANT, value=[255, 255, 255]
+        )
 
     @staticmethod
     def crop_image(img, top_left_x, top_left_y, bottom_right_x, bottom_right_y):
@@ -99,14 +111,14 @@ class Ocr:
                 fpath = Path(tmpdir) / f"img{i}.png"
                 cv2.imwrite(fpath, img)
                 i += 1
-            with open(f"{tmpdir}/batch.txt", 'w') as fout:
+            with open(f"{tmpdir}/batch.txt", "w") as fout:
                 fout.writelines([f"{tmpdir}/img{j}.png\n" for j in range(i)])
-            tess_config = ' '.join([
-                "--psm 7",
-                "--user-patterns user-patterns"
-                "--user-words user-words"
-            ])
-            results = pytesseract.image_to_string(f"{tmpdir}/batch.txt", config=tess_config).split("\x0c")
+            tess_config = " ".join(
+                ["--psm 7", "--user-patterns user-patterns" "--user-words user-words"]
+            )
+            results = pytesseract.image_to_string(
+                f"{tmpdir}/batch.txt", config=tess_config
+            ).split("\x0c")
             res_dct = dict()
             for region, raw in zip(config.ocr_regions.keys(), results):
                 res_dct[region] = raw.strip()
