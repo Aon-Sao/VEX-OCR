@@ -8,7 +8,7 @@ class JobSpec(BaseModel):
         division_name: str
 
     src_file: str
-    dst_dir: str
+    dst_dir: str | None = None
     src_file_hash: str | None = None
     src_file_size: int | None = None
     video_id: int
