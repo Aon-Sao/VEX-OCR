@@ -1,16 +1,17 @@
-import asyncio
-import json
 import logging
-import os
 import sys
+from contextlib import asynccontextmanager
+from logging import Logger
 from pathlib import Path
 
 from dotenv import load_dotenv
+from fastapi import FastAPI
 
-from VideoCopyJob import VideoCopyJob
-from VideoOCRJob import VideoOCRJob
+from JobSpec import JobSpec
+from video_copy_manager import VideoCopyManager
 
-log = logging.getLogger(__name__)
+video_copy_manager: VideoCopyManager = None
+log: Logger = None
 
 
 def setup_logging():
@@ -36,89 +37,36 @@ def setup_logging():
     sys.excepthook = handle_exception
 
 
-def process_video(video_data, tmp_dir: Path, disk_buffer_size: int, cleanup_tmp: bool):
-    remote_video_file = Path(video_data["network_path"])
-    local_video_file = tmp_dir / remote_video_file.name
-    vid_id = video_data["video_id"]
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global log
+    global video_copy_manager
 
-    futures = []
-
-    log.info(f"Beginning to process vid_id: {vid_id}")
-
-    def copy():
-        ## COPY
-        # Set up job
-        log.debug(f"Setting up copy job for vid_id: {vid_id}")
-        file_hash = video_data["file_hash"] if "file_hash" in video_data else None
-        copy_job = VideoCopyJob(
-            remote_video_file,
-            tmp_dir,
-            video_data["file_size"],
-            disk_buffer_size,
-            vid_id,
-            file_hash,
-        )
-        # Submit job to copy_executor
-        log.debug(f"Submitting copy job for vid_id: {vid_id}")
-        copy_future = copy_job.submit()
-        copy_future.add_done_callback(ocr)
-        # log.debug(f"Waiting for copy job for vid_id: {vid_id}")
-        # copy_future.result()
-        futures.append(copy_future)
-        return copy_future
-
-    def ocr(_):
-        ## OCR
-        # Set up job
-        log.debug(f"Setting up OCR job for vid_id: {vid_id}")
-        ocr_job = VideoOCRJob(
-            local_video_file,
-            video_data["scan_start_offset"],
-            video_data["divisions"],
-            vid_id
-        )
-        # Submit job to ocr_executor
-        log.debug(f"Submitting OCR job for vid_id: {vid_id}")
-        ocr_future = ocr_job.submit()
-        ocr_future.add_done_callback(clean)
-        # log.debug(f"Waiting for OCR job for vid_id: {vid_id}")
-        # ocr_future.result()
-        futures.append(ocr_future)
-        return ocr_future
-
-    def clean(_):
-        ## CLEAN
-        if cleanup_tmp:
-            log.debug(f"Starting clean for vid_id: {vid_id}")
-            VideoCopyJob.clean_up_file(local_video_file)
-            log.debug(f"Finished clean for vid_id: {vid_id}")
-        return cleanup_tmp
-
-    copy()
-    return futures
-
-
-async def main():
-    # Setup
     setup_logging()
-    log.debug("Logging configured. Parsing config.json")
-    with open("config.json") as fin:
-        config = json.load(fin)
+    log = logging.getLogger(__name__)
+
     log.debug("Loading .env")
     load_dotenv()
-    tmp_dir = Path(os.environ["TMP_DIR"])
-    disk_buffer_size = int(os.environ["THRESHOLD_GB"])
-    cleanup_tmp = os.environ["CLEANUP_TMP"] == "TRUE"
 
-    futures = []
+    video_copy_manager = VideoCopyManager()
 
-    videos = config["videos"]
-    for v in videos:
-        futures.extend(process_video(v, tmp_dir, disk_buffer_size, cleanup_tmp))
+    yield
 
-    for f in futures:
-        f.result()
+    video_copy_manager.executor.shutdown(wait=True)
+    video_copy_manager.ocr_manager.executor.shutdown(wait=True)
 
 
-if __name__ == "__main__":
-    asyncio.run(main())
+app = FastAPI(lifespan=lifespan)
+
+
+@app.post("/create_job")
+async def create_job(job_spec: JobSpec):
+    video_copy_manager.add_job(job_spec).result()
+    return
+
+
+@app.post("/create_batch_job")
+async def create_batch_job(job_spec_list: list[JobSpec]):
+    for j in job_spec_list:
+        await create_job(j)
+    return
