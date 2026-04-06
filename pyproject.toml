@@ -2,7 +2,7 @@
 name = "rr-vex-ocr"
 version = "0.1.0"
 dependencies = [
-    "fastapi>=0.135.3",
+    "fastapi[standard]>=0.135.3",
     "msgspec>=0.20.0",
     "opencv-python>=4.13.0.92",
     "psutil>=7.2.2",
@@ -11,4 +11,7 @@ dependencies = [
     "pytesseract>=0.3.13",
     "python-dotenv>=1.2.2",
     "thefuzz>=0.22.1",
+    "structlog>=25.5.0",
+    "rich>=14.3.3",
+    "pydantic-settings",
 ]

@@ -1,61 +1,65 @@
-import logging
-import sys
 from contextlib import asynccontextmanager
-from logging import Logger
-from pathlib import Path
 
-from dotenv import load_dotenv
+import structlog
 from fastapi import FastAPI
 
 from JobSpec import JobSpec
+from Settings import Settings
 from video_copy_manager import VideoCopyManager
 
+settings: Settings = None
 video_copy_manager: VideoCopyManager = None
-log: Logger = None
+log: structlog.BoundLogger = None
 
 
 def setup_logging():
-    log_path = Path("logging-from-space.log")
+    global log
+    structlog.configure(processors=[
+        # structlog.processors.TimeStamper,
+        structlog.processors.dict_tracebacks,
+        structlog.processors.JSONRenderer()
+    ])
+    log = structlog.get_logger()
+    log.debug(f"Logging configured.")
+    return log
 
-    file_handler = logging.FileHandler(log_path)
-    console_handler = logging.StreamHandler(sys.stdout)
 
-    console_handler.setLevel(logging.ERROR)
+def setup_env_vars():
+    global settings
+    log.debug("Loading .env")
+    try:
+        settings = Settings()
+        return settings
+    except Exception as e:
+        log.critical("Exception while loading .env", exc_info=e)
+        raise e
 
-    logging.basicConfig(
-        level=logging.DEBUG,
-        format="%(asctime)s [%(levelname)s] %(message)s",
-        handlers=[file_handler, console_handler],
-    )
 
-    def handle_exception(exc_type, exc_value, exc_traceback):
-        if issubclass(exc_type, KeyboardInterrupt):
-            sys.__excepthook__(exc_type, exc_value, exc_traceback)
-            return
-        logging.critical(
-            f"Uncaught exception ", exc_info=(exc_type, exc_value, exc_traceback)
-        )
+def setup_job_managers():
+    global video_copy_manager
+    log.debug(f"Creating VideoCopyManager instance")
+    video_copy_manager = VideoCopyManager(settings)
 
-    sys.excepthook = handle_exception
+
+def cleanup_job_managers():
+    log.info(f"Shutting down executors")
+    video_copy_manager.executor.shutdown(wait=True)
+    video_copy_manager.ocr_manager.executor.shutdown(wait=True)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global log
-    global video_copy_manager
-
     setup_logging()
-    log = logging.getLogger(__name__)
+    setup_env_vars()
+    setup_job_managers()
 
-    log.debug("Loading .env")
-    load_dotenv()
-
-    video_copy_manager = VideoCopyManager()
+    log.debug(f"Lifespan yielding control")
 
     yield
 
-    video_copy_manager.executor.shutdown(wait=True)
-    video_copy_manager.ocr_manager.executor.shutdown(wait=True)
+    log.debug(f"Lifespan received control")
+
+    cleanup_job_managers()
 
 
 app = FastAPI(lifespan=lifespan)
@@ -63,12 +67,15 @@ app = FastAPI(lifespan=lifespan)
 
 @app.post("/create_job")
 async def create_job(job_spec: JobSpec):
+    log.info("Received job", endpoint="/create_job", job=job_spec.model_dump())
     video_copy_manager.add_job(job_spec).result()
     return
 
 
 @app.post("/create_batch_job")
 async def create_batch_job(job_spec_list: list[JobSpec]):
+    log.info(f"Received batch job", endpoint="/create_batch_job",
+             job_list={str(i.video_id): i.model_dump() for i in job_spec_list})
     for j in job_spec_list:
         await create_job(j)
     return
