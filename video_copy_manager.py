@@ -75,10 +75,10 @@ class VideoCopyManager:
         self, video_data: JobSpec, dst_path: pathlib.Path, sleep_sec=60
     ):
         try:
-            if self.cleanup_tmp:
+            if self.cleanup_tmp and dst_path.exists():
                 self.log.debug("Waiting before cleanup", video_id=video_data.video_id, dst_path=dst_path, sleep_sec=sleep_sec)
                 sleep(sleep_sec)
-                dst_path.unlink(missing_ok=True)
+                dst_path.unlink()
                 self.log.debug("Deleted video", video_id=video_data.video_id, dst_path=dst_path)
             else:
                 self.log.debug(f"Skipped deleting video", video_id=video_data.video_id, dst_path=dst_path)
