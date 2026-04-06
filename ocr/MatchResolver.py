@@ -1,4 +1,4 @@
-import logging
+import structlog
 
 import ocr.DataObjects as DataObjects
 import ocr.utils as utils
@@ -8,11 +8,11 @@ from ocr.PhaseResolver import PhaseResolver
 from ocr.VideoPosition import VideoPosition as VidPos
 from ocr.VideoRegion import VideoRegion as VidReg
 
-log = logging.getLogger(__name__)
-
 
 class MatchResolver:
+
     def __init__(self, initial_frame: FrameResolver):
+        self.log = structlog.get_logger()
         self.ignore_auton = False
         self.initial_frame = initial_frame
         self.match_name = initial_frame.match_name
@@ -83,7 +83,7 @@ class MatchResolver:
         return None
 
     def find_phases(self):
-        log.info(f"Resolving driver phase")
+        self.log.info(f"Resolving driver phase")
         driver_phase = PhaseResolver(self.initial_frame)
         if driver_phase.division.auton_duration > 0:
             start = driver_phase.region.start()
@@ -96,11 +96,11 @@ class MatchResolver:
                 and x.match_name == self.match_name
             )
             # skipping a reject lambda
-            log.info(f"Searching for auton phase")
+            self.log.info(f"Searching for auton phase")
             frame, _ = utils.skip_search(
                 start, end, skip, accept=accept, left_to_right=False
             )
-            log.info(f"Resolving auton phase")
+            self.log.info(f"Resolving auton phase")
             auton_phase = PhaseResolver(frame) if frame is not None else None
         else:
             auton_phase = None

@@ -1,9 +1,11 @@
 import cv2
+import structlog
 
 from ocr.Config import CONFIG as config
 from ocr.FrameResolver import FrameResolver
 from ocr.VideoPosition import VideoPosition
 
+log = structlog.get_logger()
 
 def get_frame(video_pos, ocr=True):
     config.video_obj.set(cv2.CAP_PROP_POS_FRAMES, video_pos.frame())
@@ -35,6 +37,8 @@ def skip_search(
         en = min(start, end) - 1
         sk = abs(skip) * -1
 
+    log.debug(f"Searching from {st.frame()} to {en.frame()} with skip {sk.frame()}")
+
     frame_range = range(st.frame(), en.frame(), sk.frame())
     frame_range = [VideoPosition(frame=i) for i in frame_range]
 
@@ -54,4 +58,5 @@ def skip_search(
             return frame, furthest_pos
         elif reject(frame):
             return None, furthest_pos
+    log.debug("Reached end of search range")
     return None, furthest_pos

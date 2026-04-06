@@ -16,8 +16,8 @@ def setup_logging():
     global log
     structlog.configure(processors=[
         # structlog.processors.TimeStamper,
-        structlog.processors.dict_tracebacks,
-        structlog.processors.JSONRenderer()
+        # structlog.processors.dict_tracebacks,
+        structlog.dev.ConsoleRenderer()
     ])
     log = structlog.get_logger()
     log.debug(f"Logging configured.")

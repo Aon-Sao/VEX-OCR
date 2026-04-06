@@ -3,9 +3,12 @@ from tempfile import TemporaryDirectory
 
 import cv2
 import pytesseract
+import structlog
 import thefuzz.process
 
 from ocr.Config import CONFIG as config
+
+log = structlog.get_logger()
 
 
 class Ocr:
@@ -16,9 +19,9 @@ class Ocr:
             if ":" in s and len(lst := s.split(":")) == 2:
                 minutes, seconds = lst
                 if (
-                    (minutes + seconds).isnumeric()
-                    and 0 <= int(minutes) <= 59
-                    and 0 <= int(seconds) <= 59
+                        (minutes + seconds).isnumeric()
+                        and 0 <= int(minutes) <= 59
+                        and 0 <= int(seconds) <= 59
                 ):
                     return (int(minutes) * 60) + int(seconds), f"{minutes}:{seconds}"
             return None, None
@@ -35,6 +38,7 @@ class Ocr:
             match_num = None
         # TODO: avoid special casing
         if match_num == "QUALS":
+            log.info("Replacing QUALS with QUAL 5")
             match_num = "QUAL 5"
         div_name = thefuzz.process.extractOne(div_name, config.division_names)[0]
         div_type = [

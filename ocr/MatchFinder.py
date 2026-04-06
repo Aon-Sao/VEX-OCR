@@ -1,12 +1,10 @@
+import structlog
+
 from ocr import utils
 from ocr.Config import CONFIG as config
 from ocr.DatabaseRepository import DatabaseRepository
 from ocr.MatchResolver import MatchResolver
 from ocr.VideoPosition import VideoPosition as VidPos
-
-import logging
-
-log = logging.getLogger(__name__)
 
 
 class MatchFinder:
@@ -19,10 +17,12 @@ class MatchFinder:
         return cls.instance
 
     def __init__(self):
+        self.log = structlog.get_logger()
         self.furthest_pos = VidPos(time=config.scan_start_offset)
         self.db = DatabaseRepository(config.pg_conn_str)
 
     def find_all_matches(self):
+        self.log.info("Searching for matches.")
         video_end = VidPos(frame=config.frame_count)
         shortest_driver = min(
             [dv.driver_duration for dv in config.divisions if dv.driver_duration > 0]
@@ -33,11 +33,9 @@ class MatchFinder:
 
         matches_may_remain = True
         while matches_may_remain:
-            log.info(
-                f"Progress: {(self.furthest_pos.frame() / video_end.frame()) * 100:.0f}%"
-            )
+            progress = round((self.furthest_pos.frame() / video_end.frame()) * 100, 2)
+            self.log.info("Progress report", percent=progress)
             if (match := self.find_next_match(start, video_end, skip_size)) is not None:
-                log.info(str(match))
                 self.process_found_match(match)
 
                 if match.driver is not None:
@@ -59,15 +57,16 @@ class MatchFinder:
                     ),
                 }
             )
-        log.info(f"No matches remain")
+        self.log.debug(f"No matches remain")
 
     def find_next_match(self, start, end, skip):
-        log.info(f"Searching for driver phase")
+        self.log.info(f"Searching for driver phase")
         frame, furthest_pos = utils.skip_search(start, end, skip)
         self.furthest_pos = max(self.furthest_pos, furthest_pos)
         return MatchResolver(frame) if frame else None
 
     def process_found_match(self, match: MatchResolver):
+        self.log.info("Found match", match=match)
         match_info = match.get_data_obj()
         self.db.insert_found_match(match_info)
         return match.driver.region.end()

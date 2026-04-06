@@ -2,6 +2,7 @@ from pathlib import Path
 from subprocess import run, CalledProcessError
 
 import cv2
+import structlog
 
 from ocr.DataObjects import InputData
 
@@ -9,6 +10,7 @@ from ocr.DataObjects import InputData
 class Config:
     # Singleton
     instance = None
+    log = structlog.get_logger()
 
     def __new__(cls):
         if cls.instance is None:
@@ -42,6 +44,7 @@ class Config:
         self.num_phase_quality_checks = 5
 
     def configure(self, input_data: InputData):
+        self.log.debug("Configuring", input_data=input_data)
         self.input_data = input_data
         self.scan_start_offset = input_data.scan_start_offset
         self.pg_conn_str = input_data.pg_conn_str
@@ -56,9 +59,12 @@ class Config:
             self.ocr_regions[k] = getattr(input_data.ocr_regions, k)
 
     def open_video(self):
+        self.log.debug("Creating cv2 VideoCapture")
         self.video_obj = cv2.VideoCapture(Path(self.input_data.ssd_vid_path))
 
     def release_video(self):
+        self.log.info("Releasing hardware & files")
+        self.log.debug("Closing cv2 VideoCapture")
         self.video_obj.release()
 
     def set_skip_sizes(self):
@@ -84,10 +90,12 @@ class Config:
             "stream=avg_frame_rate,nb_read_packets",
             str(Path(self.input_data.ssd_vid_path).absolute()),
         ]
+        self.log.debug("Running ffprobe")
         try:
             proc = run(args=args, capture_output=True, check=True)
         except CalledProcessError as e:
-            raise Exception(e.stderr.decode())
+            self.log.error("ffprobe failed", exc_info=e, stdout=e.stderr.decode())
+            raise e
         output = proc.stdout.decode()
         fps_str, total_frames = output.split("\n", maxsplit=1)
         n, d = fps_str.split(r"/")
