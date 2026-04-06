@@ -13,7 +13,6 @@ from video_ocr_manager import VideoOCRManager
 
 
 class VideoCopyManager:
-    log = structlog.get_logger()
     _instance = None
     _lock = threading.Lock()
 
@@ -36,6 +35,8 @@ class VideoCopyManager:
     ):
         if self._initialized:
             return
+
+        self.log = structlog.get_logger()
 
         # Defaults
         self.tmp_dir = settings.tmp_dir if tmp_dir is None else tmp_dir

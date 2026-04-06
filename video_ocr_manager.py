@@ -11,7 +11,6 @@ from ocr import run_ocr
 
 
 class VideoOCRManager:
-    log = structlog.get_logger()
     _instance = None
     _lock = threading.Lock()
 
@@ -23,6 +22,7 @@ class VideoOCRManager:
             return cls._instance
 
     def __init__(self, settings: Settings):
+        self.log = structlog.get_logger()
         if self._initialized:
             return
         self.log.debug("Creating ProcessPoolExecutor")
