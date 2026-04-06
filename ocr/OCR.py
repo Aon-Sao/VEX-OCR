@@ -3,7 +3,7 @@ from tempfile import TemporaryDirectory
 
 import cv2
 import pytesseract
-from thefuzz import fuzz
+import thefuzz.process
 
 from ocr.Config import CONFIG as config
 
@@ -12,14 +12,6 @@ class Ocr:
 
     @staticmethod
     def interpret_results(raw_results):
-        def longest_best_match(dct):
-            score_sort = sorted(dct.items(), key=lambda x: x[1], reverse=True)
-            best_score = score_sort[0][1]
-            ties = filter(lambda x: x[1] >= best_score, score_sort)
-            length_sort = sorted(ties, key=lambda x: len(x[0]), reverse=True)
-            longest = length_sort[0][0]
-            return None if longest == "" else longest
-
         def timer_str_to_sec(s):
             if ":" in s and len(lst := s.split(":")) == 2:
                 minutes, seconds = lst
@@ -44,10 +36,7 @@ class Ocr:
         # TODO: avoid special casing
         if match_num == "QUALS":
             match_num = "QUAL 5"
-        ratios = {
-            i: fuzz.partial_ratio(div_name.lower(), i) for i in config.division_names
-        }
-        div_name = longest_best_match(ratios)
+        div_name = thefuzz.process.extractOne(div_name, config.division_names)[0]
         div_type = [
             i.program_code for i in config.divisions if i.division_name == div_name
         ][0]
